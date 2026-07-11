@@ -1,20 +1,50 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Save, Sparkles, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { SubjectChip } from '@/components/shared/SubjectChip'
-import { NOTES, getSubject } from '@/data/mockData'
+import { useNote } from '@/hooks/useNotes'
+import { useUpdateNote } from '@/hooks/useNotes'
+import { useSubjects } from '@/hooks/useSubjects'
+import { toast } from 'react-hot-toast'
 import { formatDate } from '@/lib/utils'
 
 export default function NoteEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const note = NOTES.find((n) => n.id === id)
-  const subject = note?.subjectId ? getSubject(note.subjectId) : undefined
+
+  const noteQuery = useNote(id)
+  const subjectsQuery = useSubjects()
+  const updateMutation = useUpdateNote()
+
+  const note = noteQuery.data
+  const subjectMap = new Map(subjectsQuery.data?.map((s) => [s.id, s]) ?? [])
+  const subject = note?.subjectId ? subjectMap.get(note.subjectId) : undefined
 
   const [title, setTitle] = useState(note?.title || 'Untitled Note')
   const [content, setContent] = useState(note?.content || '')
+
+  useEffect(() => {
+    if (note) {
+      setTitle(note.title)
+      setContent(note.content)
+    }
+  }, [note?.id, note?.title, note?.content])
+
+  const handleSave = async () => {
+    if (!id || !note) return
+    await updateMutation.mutateAsync({ id, title, content })
+    toast.success('Note saved')
+  }
+
+  if (noteQuery.isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-container border-t-transparent" />
+      </div>
+    )
+  }
 
   if (!note) {
     return (
@@ -43,7 +73,7 @@ export default function NoteEditorPage() {
           <Button variant="ghost" size="sm" icon={<Sparkles className="h-4 w-4" />}>
             AI Summary
           </Button>
-          <Button variant="primary" size="sm" icon={<Save className="h-4 w-4" />}>
+          <Button variant="primary" size="sm" onClick={handleSave} loading={updateMutation.isPending} icon={<Save className="h-4 w-4" />}>
             Save
           </Button>
         </div>
