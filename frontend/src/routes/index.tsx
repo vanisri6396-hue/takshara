@@ -1,40 +1,22 @@
-import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ProtectedRoute } from './ProtectedRoute'
 import { ROUTES } from './routePaths'
 
-/* ──────────────────────────── Lazy-loaded Pages ───────────────── */
+/* ──────────────────────────── Page Imports ─────────────────────── */
 
-const DashboardPage = lazy(() => import('@/features/dashboard/DashboardPage'))
-const TimetablePage = lazy(() => import('@/features/timetable/TimetablePage'))
-const NotesPage = lazy(() => import('@/features/notes/NotesPage'))
-const NoteEditorPage = lazy(() => import('@/features/notes/NoteEditorPage'))
-const AssignmentsPage = lazy(() => import('@/features/assignments/AssignmentsPage'))
-const AttendancePage = lazy(() => import('@/features/attendance/AttendancePage'))
-const AIPage = lazy(() => import('@/features/ai-assistant/AIPage'))
-const SettingsPage = lazy(() => import('@/features/settings/SettingsPage'))
-const ProfilePage = lazy(() => import('@/features/profile/ProfilePage'))
-const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
-const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'))
-const NotFoundPage = lazy(() => import('@/features/not-found/NotFoundPage'))
-
-/* ──────────────────────────── Loading Fallback ────────────────── */
-
-function PageLoader() {
-  return (
-    <div className="flex h-full min-h-[400px] items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-container border-t-transparent" />
-        <p className="text-label-sm text-on-surface-variant">Loading...</p>
-      </div>
-    </div>
-  )
-}
-
-function SuspenseWrapper({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<PageLoader />}>{children}</Suspense>
-}
+import DashboardPage from '@/features/dashboard/DashboardPage'
+import TimetablePage from '@/features/timetable/TimetablePage'
+import NotesPage from '@/features/notes/NotesPage'
+import NoteEditorPage from '@/features/notes/NoteEditorPage'
+import AssignmentsPage from '@/features/assignments/AssignmentsPage'
+import AttendancePage from '@/features/attendance/AttendancePage'
+import AIPage from '@/features/ai-assistant/AIPage'
+import SettingsPage from '@/features/settings/SettingsPage'
+import ProfilePage from '@/features/profile/ProfilePage'
+import LoginPage from '@/features/auth/LoginPage'
+import RegisterPage from '@/features/auth/RegisterPage'
+import NotFoundPage from '@/features/not-found/NotFoundPage'
 
 /* ──────────────────────────── Router Configuration ────────────── */
 
@@ -44,19 +26,11 @@ export const router = createBrowserRouter([
     children: [
       {
         path: 'login',
-        element: (
-          <SuspenseWrapper>
-            <LoginPage />
-          </SuspenseWrapper>
-        ),
+        element: <LoginPage />,
       },
       {
         path: 'register',
-        element: (
-          <SuspenseWrapper>
-            <RegisterPage />
-          </SuspenseWrapper>
-        ),
+        element: <RegisterPage />,
       },
     ],
   },
@@ -72,75 +46,39 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.DASHBOARD,
-            element: (
-              <SuspenseWrapper>
-                <DashboardPage />
-              </SuspenseWrapper>
-            ),
+            element: <DashboardPage />,
           },
           {
             path: ROUTES.TIMETABLE,
-            element: (
-              <SuspenseWrapper>
-                <TimetablePage />
-              </SuspenseWrapper>
-            ),
+            element: <TimetablePage />,
           },
           {
             path: ROUTES.NOTES,
-            element: (
-              <SuspenseWrapper>
-                <NotesPage />
-              </SuspenseWrapper>
-            ),
+            element: <NotesPage />,
           },
           {
             path: ROUTES.NOTE_DETAIL,
-            element: (
-              <SuspenseWrapper>
-                <NoteEditorPage />
-              </SuspenseWrapper>
-            ),
+            element: <NoteEditorPage />,
           },
           {
             path: ROUTES.ASSIGNMENTS,
-            element: (
-              <SuspenseWrapper>
-                <AssignmentsPage />
-              </SuspenseWrapper>
-            ),
+            element: <AssignmentsPage />,
           },
           {
             path: ROUTES.ATTENDANCE,
-            element: (
-              <SuspenseWrapper>
-                <AttendancePage />
-              </SuspenseWrapper>
-            ),
+            element: <AttendancePage />,
           },
           {
             path: ROUTES.AI,
-            element: (
-              <SuspenseWrapper>
-                <AIPage />
-              </SuspenseWrapper>
-            ),
+            element: <AIPage />,
           },
           {
             path: ROUTES.SETTINGS,
-            element: (
-              <SuspenseWrapper>
-                <SettingsPage />
-              </SuspenseWrapper>
-            ),
+            element: <SettingsPage />,
           },
           {
             path: ROUTES.PROFILE,
-            element: (
-              <SuspenseWrapper>
-                <ProfilePage />
-              </SuspenseWrapper>
-            ),
+            element: <ProfilePage />,
           },
         ],
       },
@@ -148,10 +86,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: (
-      <SuspenseWrapper>
-        <NotFoundPage />
-      </SuspenseWrapper>
-    ),
+    element: <NotFoundPage />,
   },
 ])
