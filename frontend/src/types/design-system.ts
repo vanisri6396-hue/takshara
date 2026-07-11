@@ -109,6 +109,7 @@ export interface Assignment {
   dueDate: string
   status: 'pending' | 'submitted' | 'graded'
   grade?: number
+  description?: string
 }
 
 export interface AttendanceRecord {
@@ -126,4 +127,33 @@ export interface Note {
   tags: string[]
   createdAt: string
   updatedAt: string
+}
+
+/* ──────────────────────────── Dashboard ──────────────────────── */
+
+export interface DashboardStats {
+  totalClasses: number
+  attendedClasses: number
+  attendancePercentage: number
+  pendingAssignments: number
+  upcomingClasses: number
+  completedAssignments: number
+  averageGrade: number
+}
+
+export interface ActivityItem {
+  id: string
+  type: 'assignment_graded' | 'assignment_submitted' | 'note_created' | 'attendance' | 'reminder'
+  message: string
+  timestamp: string
+  subjectId?: string
+}
+
+export interface StudyGoal {
+  id: string
+  title: string
+  target: number
+  current: number
+  unit: string
+  subjectId?: string
 }

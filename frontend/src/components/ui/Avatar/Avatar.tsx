@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { cn, getInitials } from '@/lib/utils'
 import type { AvatarProps } from '@/types/design-system'
 
@@ -16,9 +17,10 @@ export function Avatar({
   size = 'md',
   ...props
 }: AvatarProps) {
+  const [imgError, setImgError] = useState(false)
   const initials = fallback || getInitials(alt || '')
 
-  if (src) {
+  if (src && !imgError) {
     return (
       <div
         className={cn(
@@ -32,19 +34,7 @@ export function Avatar({
           src={src}
           alt={alt}
           className="h-full w-full object-cover"
-          onError={(e) => {
-            // If image fails to load, show fallback
-            const target = e.currentTarget
-            target.style.display = 'none'
-            const parent = target.parentElement
-            if (parent) {
-              const fallbackEl = document.createElement('span')
-              fallbackEl.className =
-                'flex h-full w-full items-center justify-center bg-primary-container text-on-primary-container font-bold'
-              fallbackEl.textContent = initials
-              parent.appendChild(fallbackEl)
-            }
-          }}
+          onError={() => setImgError(true)}
         />
       </div>
     )

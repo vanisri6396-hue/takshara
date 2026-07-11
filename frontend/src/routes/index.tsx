@@ -14,6 +14,7 @@ const AssignmentsPage = lazy(() => import('@/features/assignments/AssignmentsPag
 const AttendancePage = lazy(() => import('@/features/attendance/AttendancePage'))
 const AIPage = lazy(() => import('@/features/ai-assistant/AIPage'))
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage'))
+const ProfilePage = lazy(() => import('@/features/profile/ProfilePage'))
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
 const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'))
 const NotFoundPage = lazy(() => import('@/features/not-found/NotFoundPage'))
@@ -130,6 +131,14 @@ export const router = createBrowserRouter([
             element: (
               <SuspenseWrapper>
                 <SettingsPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: ROUTES.PROFILE,
+            element: (
+              <SuspenseWrapper>
+                <ProfilePage />
               </SuspenseWrapper>
             ),
           },

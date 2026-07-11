@@ -13,6 +13,7 @@ export const ROUTES = {
   ATTENDANCE: '/attendance',
   AI: '/ai',
   SETTINGS: '/settings',
+  PROFILE: '/profile',
 } as const
 
 /* ──────────────────────────── Navigation ──────────────────────── */
