@@ -55,33 +55,45 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   signIn: async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      const msg = error.message || 'Sign in failed'
-      return { error: msg }
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        const code = (error as any).status
+        const msg = error.message || 'Sign in failed'
+        if (code === 400) return { error: `Auth rejected: ${msg}. Check Supabase Auth settings and site URL/email confirmations.` }
+        return { error: msg }
+      }
+      if (!data.session) {
+        return { error: 'Please verify your email before signing in.' }
+      }
+      return {}
+    } catch (err) {
+      return { error: `Auth error: ${(err as any)?.message || err}` }
     }
-    if (!data.session) {
-      return { error: 'Please verify your email before signing in.' }
-    }
-    return {}
   },
 
   signUp: async (email: string, password: string, fullName: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-      },
-    })
-    if (error) {
-      const msg = error.message || 'Sign up failed'
-      return { error: msg }
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName },
+        },
+      })
+      if (error) {
+        const code = (error as any).status
+        const msg = error.message || 'Sign up failed'
+        if (code === 400) return { error: `Signup rejected: ${msg}. Verify password length, allowed emails, and Auth settings in Supabase.` }
+        return { error: msg }
+      }
+      if (!data.session) {
+        return { error: 'Account created. Please verify your email before signing in.' }
+      }
+      return {}
+    } catch (err) {
+      return { error: `Auth error: ${(err as any)?.message || err}` }
     }
-    if (!data.session) {
-      return { error: 'Account created. Please verify your email before signing in.' }
-    }
-    return {}
   },
 
   signOut: async () => {
