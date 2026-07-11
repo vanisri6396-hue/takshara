@@ -48,6 +48,20 @@ export function useCreateAssignment() {
   })
 }
 
+export function useDeleteAssignment() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('assignments').delete().eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assignments'] })
+    },
+  })
+}
+
 export function useUpdateAssignment() {
   const queryClient = useQueryClient()
 

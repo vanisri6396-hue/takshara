@@ -1,16 +1,31 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { APP_NAME, APP_TAGLINE } from '@/lib/constants'
+import { useAuthStore } from '@/stores/authStore'
+import { toast } from 'react-hot-toast'
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const navigate = useNavigate()
+  const signUp = useAuthStore((s) => s.signUp)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const { error } = await signUp(email, password, name)
+    if (error) {
+      toast.error(error)
+    } else {
+      toast.success('Account created')
+      navigate('/dashboard')
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface p-4">
@@ -30,7 +45,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Form */}
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <Input
               label="Full Name"
               type="text"

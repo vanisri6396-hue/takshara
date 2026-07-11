@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookOpen, Search, Plus, FileText, Sparkles } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { SubjectChip } from '@/components/shared/SubjectChip'
-import { NOTES, getSubject } from '@/data/mockData'
+import { useNotes } from '@/hooks/useNotes'
+import { useSubjects } from '@/hooks/useSubjects'
+import { useCreateNote } from '@/hooks/useNotes'
+import { toast } from 'react-hot-toast'
 import { cn, formatDate, truncate } from '@/lib/utils'
 
 export default function NotesPage() {
@@ -12,15 +15,40 @@ export default function NotesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSubject, setSelectedSubject] = useState<string | 'all'>('all')
 
-  const subjects = [...new Set(NOTES.filter((n) => n.subjectId).map((n) => n.subjectId!))]
+  const notesQuery = useNotes()
+  const subjectsQuery = useSubjects()
+  const createMutation = useCreateNote()
 
-  const filteredNotes = NOTES.filter((note) => {
+  const subjectMap = new Map(subjectsQuery.data?.map((s) => [s.id, s]) ?? [])
+
+  const subjects = useMemo(() => {
+    if (!notesQuery.data) return []
+    return [...new Set(notesQuery.data.filter((n) => n.subjectId).map((n) => n.subjectId!))]
+  }, [notesQuery.data])
+
+  const filteredNotes = (notesQuery.data ?? []).filter((note) => {
     const matchesSearch =
       note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       note.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()))
     const matchesSubject = selectedSubject === 'all' || note.subjectId === selectedSubject
     return matchesSearch && matchesSubject
   })
+
+  const handleCreateNote = async () => {
+    const title = prompt('Note title:')
+    if (!title) return
+    const content = prompt('Note content:') || ''
+    await createMutation.mutateAsync({ title, content, subjectId: selectedSubject === 'all' ? undefined : selectedSubject })
+    toast.success('Note created')
+  }
+
+  if (notesQuery.isLoading || subjectsQuery.isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-container border-t-transparent" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 pb-8">
@@ -30,7 +58,10 @@ export default function NotesPage() {
           <h1 className="font-headline text-headline-lg text-on-surface">Notes</h1>
           <p className="mt-1 text-body-md text-on-surface-variant">Your study notes and summaries</p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-radius-lg gradient-gold px-4 py-2.5 text-label-md font-bold text-on-primary transition-all duration-200 hover:opacity-90 glow-gold">
+        <button
+          onClick={handleCreateNote}
+          className="inline-flex items-center gap-2 rounded-radius-lg gradient-gold px-4 py-2.5 text-label-md font-bold text-on-primary transition-all duration-200 hover:opacity-90 glow-gold"
+        >
           <Plus className="h-4 w-4" />
           New Note
         </button>
@@ -64,7 +95,7 @@ export default function NotesPage() {
           All Notes
         </button>
         {subjects.map((subId) => {
-          const subject = getSubject(subId)
+          const subject = subjectMap.get(subId)
           return (
             <button
               key={subId}
@@ -102,7 +133,7 @@ export default function NotesPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredNotes.map((note, i) => {
-              const subject = note.subjectId ? getSubject(note.subjectId) : undefined
+              const subject = note.subjectId ? subjectMap.get(note.subjectId) : undefined
               return (
                 <div
                   key={note.id}

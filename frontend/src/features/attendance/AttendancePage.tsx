@@ -1,39 +1,61 @@
 import { useState } from 'react'
-import { GraduationCap, Calendar, TrendingUp, AlertTriangle } from 'lucide-react'
+import { GraduationCap, Calendar, TrendingUp, AlertTriangle, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { GlassCard } from '@/components/ui/GlassCard'
+import { Button } from '@/components/ui/Button'
 import { SubjectChip } from '@/components/shared/SubjectChip'
-import { SUBJECTS, ATTENDANCE, getAttendancePercentage, getAttendanceForSubject } from '@/data/mockData'
+import { useSubjects } from '@/hooks/useSubjects'
+import { useAttendance } from '@/hooks/useAttendance'
+import { useCreateAttendanceRecord } from '@/hooks/useAttendance'
+import { toast } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { ATTENDANCE_THRESHOLD } from '@/lib/constants'
+import type { AttendanceRecord } from '@/types/design-system'
+
+const STATUSES: { value: AttendanceRecord['status']; label: string; icon: typeof CheckCircle }[] = [
+  { value: 'present', label: 'Present', icon: CheckCircle },
+  { value: 'absent', label: 'Absent', icon: XCircle },
+  { value: 'late', label: 'Late', icon: Clock },
+]
 
 export default function AttendancePage() {
   const [selectedSubject, setSelectedSubject] = useState<string | 'all'>('all')
+  const [markingId, setMarkingId] = useState<string | null>(null)
 
-  const subjectAttendance = SUBJECTS.map((sub) => ({
-    subject: sub,
-    percentage: getAttendancePercentage(sub.id),
-    records: getAttendanceForSubject(sub.id),
-  }))
+  const subjectsQuery = useSubjects()
+  const attendanceQuery = useAttendance()
+  const createMutation = useCreateAttendanceRecord()
+
+  const subjectMap = new Map(subjectsQuery.data?.map((s) => [s.id, s]) ?? [])
 
   const filteredAttendance =
     selectedSubject === 'all'
-      ? subjectAttendance
-      : subjectAttendance.filter((sa) => sa.subject.id === selectedSubject)
+      ? attendanceQuery.data ?? []
+      : (attendanceQuery.data ?? []).filter((a) => a.subjectId === selectedSubject)
 
   const overallPercentage =
-    ATTENDANCE.length > 0
-      ? Math.round(
-          (ATTENDANCE.filter((a) => a.status === 'present' || a.status === 'late').length /
-            ATTENDANCE.length) *
-            100,
-        )
+    attendanceQuery.data?.length
+      ? Math.round((attendanceQuery.data.filter((a) => a.status === 'present' || a.status === 'late').length / attendanceQuery.data.length) * 100)
       : 0
 
-  const totalPresent = ATTENDANCE.filter((a) => a.status === 'present').length
-  const totalAbsent = ATTENDANCE.filter((a) => a.status === 'absent').length
-  const totalLate = ATTENDANCE.filter((a) => a.status === 'late').length
+  const totalPresent = attendanceQuery.data?.filter((a) => a.status === 'present').length ?? 0
+  const totalAbsent = attendanceQuery.data?.filter((a) => a.status === 'absent').length ?? 0
+  const totalLate = attendanceQuery.data?.filter((a) => a.status === 'late').length ?? 0
+
+  const handleMarkAttendance = async (record: { subjectId: string; date: string; status: AttendanceRecord['status'] }) => {
+    await createMutation.mutateAsync(record)
+    toast.success('Attendance marked')
+    setMarkingId(null)
+  }
+
+  if (subjectsQuery.isLoading || attendanceQuery.isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-container border-t-transparent" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 pb-8">
@@ -149,7 +171,7 @@ export default function AttendancePage() {
         >
           All Subjects
         </button>
-        {SUBJECTS.map((sub) => (
+        {(subjectsQuery.data ?? []).map((sub) => (
           <button
             key={sub.id}
             onClick={() => setSelectedSubject(sub.id)}
@@ -170,98 +192,140 @@ export default function AttendancePage() {
         ))}
       </div>
 
-      {/* Subject Attendance Cards */}
+      {/* Attendance Records */}
       <div className="space-y-3 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-        {filteredAttendance.map((sa, i) => {
-          const isAtRisk = sa.percentage < ATTENDANCE_THRESHOLD
-          return (
-            <div
-              key={sa.subject.id}
-              className="animate-fade-in-up"
-              style={{ animationDelay: `${i * 50}ms` }}
-            >
-              <Card
-                variant="glass"
-                className={cn(
-                  'overflow-hidden p-0 transition-all duration-200 hover:scale-[1.01]',
-                  isAtRisk && 'border-amber-500/30',
-                )}
+        {filteredAttendance.length === 0 ? (
+          <Card variant="glass" className="p-10">
+            <div className="flex flex-col items-center gap-3">
+              <Calendar className="h-12 w-12 text-on-surface-variant/30" />
+              <p className="text-body-lg text-on-surface-variant">No attendance records</p>
+              <p className="text-label-sm text-on-surface-variant/50">
+                Mark your first attendance to get started
+              </p>
+            </div>
+          </Card>
+        ) : (
+                  filteredAttendance.map((record, i) => {
+            const subject = subjectMap.get(record.subjectId)
+            const isAtRisk = record.status === 'absent'
+            return (
+              <div
+                key={record.id}
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${i * 50}ms` }}
               >
-                <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:gap-6">
-                  {/* Percentage Circle */}
-                  <div
-                    className={cn(
-                      'flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border-2',
-                      isAtRisk
-                        ? 'border-amber-500/30 bg-amber-500/10'
-                        : 'border-emerald-500/30 bg-emerald-500/10',
-                    )}
-                  >
-                    <span
+                <Card
+                  variant="glass"
+                  className={cn(
+                    'overflow-hidden p-0 transition-all duration-200 hover:scale-[1.01]',
+                    isAtRisk && 'border-amber-500/30',
+                  )}
+                >
+                  <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:gap-6">
+                    {/* Status Indicator */}
+                    <div
                       className={cn(
-                        'font-headline text-headline-md',
-                        isAtRisk ? 'text-amber-400' : 'text-emerald-400',
+                        'flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border-2',
+                        record.status === 'present'
+                          ? 'border-emerald-500/30 bg-emerald-500/10'
+                          : record.status === 'late'
+                            ? 'border-amber-500/30 bg-amber-500/10'
+                            : 'border-red-500/30 bg-red-500/10',
                       )}
                     >
-                      {sa.percentage}%
-                    </span>
-                  </div>
-
-                  {/* Details */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-body-lg font-medium text-on-surface">
-                        {sa.subject.name}
-                      </h3>
-                      <SubjectChip label={sa.subject.code} color={sa.subject.color} size="sm" />
-                    </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-4 text-label-sm text-on-surface-variant">
-                      <span>
-                        Present:{' '}
-                        <span className="text-emerald-400">
-                          {sa.records.filter((r) => r.status === 'present').length}
-                        </span>
-                      </span>
-                      <span>
-                        Late:{' '}
-                        <span className="text-amber-400">
-                          {sa.records.filter((r) => r.status === 'late').length}
-                        </span>
-                      </span>
-                      <span>
-                        Absent:{' '}
-                        <span className="text-red-400">
-                          {sa.records.filter((r) => r.status === 'absent').length}
-                        </span>
-                      </span>
-                      <span>Total: {sa.records.length}</span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface-container-highest">
-                      <div
+                      <span
                         className={cn(
-                          'h-full rounded-full transition-all animate-grow-width',
-                          isAtRisk ? 'bg-amber-500' : 'bg-emerald-500',
+                          'font-headline text-headline-md',
+                          record.status === 'present'
+                            ? 'text-emerald-400'
+                            : record.status === 'late'
+                              ? 'text-amber-400'
+                              : 'text-red-400',
                         )}
-                        style={{ width: `${sa.percentage}%`, animationDelay: `${300 + i * 100}ms` }}
-                      />
+                      >
+                        {record.status === 'present' ? '✓' : record.status === 'late' ? '~' : '✗'}
+                      </span>
+                    </div>
+
+                    {/* Details */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-body-lg font-medium text-on-surface">
+                          {subject?.name || 'Unknown'}
+                        </h3>
+                        <SubjectChip label={subject?.code || ''} color={subject?.color} size="sm" />
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-4 text-label-sm text-on-surface-variant">
+                        <span>{record.date}</span>
+                        <span
+                          className={cn(
+                            'font-bold',
+                            record.status === 'present'
+                              ? 'text-emerald-400'
+                              : record.status === 'late'
+                                ? 'text-amber-400'
+                                : 'text-red-400',
+                          )}
+                        >
+                          {record.status.toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setMarkingId(record.id)}
+                      >
+                        Update
+                      </Button>
                     </div>
                   </div>
+                </Card>
 
-                  {/* Status Badge */}
-                  <div className="flex-shrink-0">
-                    {isAtRisk ? (
-                      <Badge variant="error" size="sm">At Risk</Badge>
-                    ) : (
-                      <Badge variant="success" size="sm">On Track</Badge>
-                    )}
+                {/* Mark Attendance Dialog */}
+                {markingId === record.id && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <Card variant="glass" className="w-full max-w-md p-6">
+                      <h3 className="font-headline text-headline-md text-on-surface">Mark Attendance</h3>
+                      <p className="mt-2 text-body-md text-on-surface-variant">
+                        {subject?.name} · {record.date}
+                      </p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {STATUSES.map((status) => (
+                          <button
+                            key={status.value}
+                            onClick={() => handleMarkAttendance({
+                              subjectId: record.subjectId,
+                              date: record.date,
+                              status: status.value,
+                            })}
+                            className={cn(
+                              'flex items-center gap-2 rounded-radius-lg px-4 py-2 text-label-md transition-all duration-200',
+                              record.status === status.value
+                                ? 'gradient-gold text-on-primary font-bold'
+                                : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface',
+                            )}
+                          >
+                            <status.icon className="h-4 w-4" />
+                            {status.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="mt-4">
+                        <Button variant="ghost" onClick={() => setMarkingId(null)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </Card>
                   </div>
-                </div>
-              </Card>
-            </div>
-          )
-        })}
+                )}
+              </div>
+            )
+          })
+        )}
       </div>
     </div>
   )

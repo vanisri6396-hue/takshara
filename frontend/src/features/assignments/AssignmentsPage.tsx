@@ -1,10 +1,14 @@
 import { useState } from 'react'
-import { ClipboardList, Calendar, Clock, FileText, CheckCircle2 } from 'lucide-react'
+import { ClipboardList, Calendar, Clock, FileText, CheckCircle2, Trash2 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { GlassCard } from '@/components/ui/GlassCard'
+import { Button } from '@/components/ui/Button'
 import { SubjectChip } from '@/components/shared/SubjectChip'
-import { ASSIGNMENTS, getSubject } from '@/data/mockData'
+import { useAssignments } from '@/hooks/useAssignments'
+import { useCreateAssignment, useUpdateAssignment, useDeleteAssignment } from '@/hooks/useAssignments'
+import { useSubjects } from '@/hooks/useSubjects'
+import { toast } from 'react-hot-toast'
 import { cn, formatDate } from '@/lib/utils'
 import type { Assignment } from '@/types/design-system'
 
@@ -15,13 +19,23 @@ const TABS: { label: string; value: Assignment['status'] | 'all' }[] = [
   { label: 'Graded', value: 'graded' },
 ]
 
+const DIALOG_TITLE = 'Assignment'
+
 export default function AssignmentsPage() {
   const [activeTab, setActiveTab] = useState<Assignment['status'] | 'all'>('all')
+  const [showDeleteId, setShowDeleteId] = useState<string | null>(null)
+
+  const assignmentsQuery = useAssignments()
+  const subjectsQuery = useSubjects()
+  const subjectMap = new Map(subjectsQuery.data?.map((s) => [s.id, s]) ?? [])
+  const createMutation = useCreateAssignment()
+  const updateMutation = useUpdateAssignment()
+  const deleteMutation = useDeleteAssignment()
 
   const filteredAssignments =
     activeTab === 'all'
-      ? ASSIGNMENTS
-      : ASSIGNMENTS.filter((a) => a.status === activeTab)
+      ? assignmentsQuery.data ?? []
+      : (assignmentsQuery.data ?? []).filter((a) => a.status === activeTab)
 
   const statusBadge = (status: Assignment['status']) => {
     switch (status) {
@@ -32,6 +46,27 @@ export default function AssignmentsPage() {
       case 'graded':
         return <Badge variant="success" size="sm">Graded</Badge>
     }
+  }
+
+  const isLoading = assignmentsQuery.isLoading || subjectsQuery.isLoading
+
+  const handleStatusChange = async (id: string, status: Assignment['status']) => {
+    await updateMutation.mutateAsync({ id, status })
+    toast.success('Assignment updated')
+  }
+
+  const handleDelete = async (id: string) => {
+    await deleteMutation.mutateAsync(id)
+    toast.success('Assignment deleted')
+    setShowDeleteId(null)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-container border-t-transparent" />
+      </div>
+    )
   }
 
   return (
@@ -53,7 +88,7 @@ export default function AssignmentsPage() {
               <div>
                 <p className="text-label-sm text-on-surface-variant">Pending</p>
                 <p className="font-headline text-headline-md text-on-surface">
-                  {ASSIGNMENTS.filter((a) => a.status === 'pending').length}
+                  {(assignmentsQuery.data ?? []).filter((a) => a.status === 'pending').length}
                 </p>
               </div>
             </div>
@@ -66,7 +101,7 @@ export default function AssignmentsPage() {
               <div>
                 <p className="text-label-sm text-on-surface-variant">Submitted</p>
                 <p className="font-headline text-headline-md text-on-surface">
-                  {ASSIGNMENTS.filter((a) => a.status === 'submitted').length}
+                  {(assignmentsQuery.data ?? []).filter((a) => a.status === 'submitted').length}
                 </p>
               </div>
             </div>
@@ -79,7 +114,7 @@ export default function AssignmentsPage() {
               <div>
                 <p className="text-label-sm text-on-surface-variant">Graded</p>
                 <p className="font-headline text-headline-md text-on-surface">
-                  {ASSIGNMENTS.filter((a) => a.status === 'graded').length}
+                  {(assignmentsQuery.data ?? []).filter((a) => a.status === 'graded').length}
                 </p>
               </div>
             </div>
@@ -92,7 +127,7 @@ export default function AssignmentsPage() {
               <div>
                 <p className="text-label-sm text-on-surface-variant">Total</p>
                 <p className="font-headline text-headline-md text-on-surface">
-                  {ASSIGNMENTS.length}
+                  {assignmentsQuery.data?.length ?? 0}
                 </p>
               </div>
             </div>
@@ -126,18 +161,16 @@ export default function AssignmentsPage() {
               <ClipboardList className="h-12 w-12 text-on-surface-variant/30" />
               <p className="text-body-lg text-on-surface-variant">No assignments found</p>
               <p className="text-label-sm text-on-surface-variant/50">
-                {activeTab === 'all'
-                  ? 'No assignments yet'
-                  : `No ${activeTab} assignments`}
+                {activeTab === 'all' ? 'No assignments yet' : `No ${activeTab} assignments`}
               </p>
             </div>
           </Card>
         ) : (
           filteredAssignments.map((assignment, i) => {
-            const subject = getSubject(assignment.subjectId)
-            const isUrgent =
-              assignment.status === 'pending' &&
-              new Date(assignment.dueDate).getTime() - Date.now() < 3 * 24 * 60 * 60 * 1000
+                    const subject = subjectMap.get(assignment.subjectId)
+                    const isUrgent =
+                      assignment.status === 'pending' &&
+                      new Date(assignment.dueDate).getTime() - Date.now() < 3 * 24 * 60 * 60 * 1000
 
             return (
               <div
@@ -194,6 +227,26 @@ export default function AssignmentsPage() {
                           Due {formatDate(assignment.dueDate)}
                         </span>
                       </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {assignment.status === 'pending' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleStatusChange(assignment.id, 'submitted')}
+                          >
+                            Mark Submitted
+                          </Button>
+                        )}
+                        {assignment.status === 'submitted' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleStatusChange(assignment.id, 'graded')}
+                          >
+                            Mark Graded
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Grade Badge */}
@@ -207,8 +260,37 @@ export default function AssignmentsPage() {
                         <span className="mt-1 text-label-sm text-emerald-400">/100</span>
                       </div>
                     )}
+
+                    {/* Delete */}
+                    <button
+                      onClick={() => setShowDeleteId(assignment.id)}
+                      className="flex-shrink-0 rounded-radius text-on-surface-variant transition-colors hover:text-red-400"
+                      aria-label="Delete assignment"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
                   </div>
                 </Card>
+
+                {/* Delete Confirmation */}
+                {showDeleteId === assignment.id && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <Card variant="glass" className="w-full max-w-md p-6">
+                      <h3 className="font-headline text-headline-md text-on-surface">Delete Assignment</h3>
+                      <p className="mt-2 text-body-md text-on-surface-variant">
+                        Are you sure you want to delete "{assignment.title}"? This action cannot be undone.
+                      </p>
+                      <div className="mt-4 flex justify-end gap-3">
+                        <Button variant="ghost" onClick={() => setShowDeleteId(null)}>
+                          Cancel
+                        </Button>
+                        <Button variant="ghost" onClick={() => handleDelete(assignment.id)}>
+                          Delete
+                        </Button>
+                      </div>
+                    </Card>
+                  </div>
+                )}
               </div>
             )
           })

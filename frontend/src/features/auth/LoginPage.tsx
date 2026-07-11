@@ -1,15 +1,30 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { APP_NAME, APP_TAGLINE } from '@/lib/constants'
+import { useAuthStore } from '@/stores/authStore'
+import { toast } from 'react-hot-toast'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const navigate = useNavigate()
+  const signIn = useAuthStore((s) => s.signIn)
+  const isLoading = useAuthStore((s) => s.isLoading)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const { error } = await signIn(email, password)
+    if (error) {
+      toast.error(error)
+    } else {
+      navigate('/dashboard')
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface p-4">
@@ -25,7 +40,7 @@ export default function LoginPage() {
           </div>
 
           {/* Form */}
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <Input
               label="Email"
               type="email"
