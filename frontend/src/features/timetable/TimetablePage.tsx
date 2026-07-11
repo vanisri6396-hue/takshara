@@ -4,7 +4,8 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { SubjectChip } from '@/components/shared/SubjectChip'
-import { SCHEDULE, getSubject } from '@/data/mockData'
+import { useSchedules } from '@/hooks/useSchedules'
+import { useSubjects } from '@/hooks/useSubjects'
 import { cn } from '@/lib/utils'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
@@ -12,9 +13,22 @@ const TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00
 
 export default function TimetablePage() {
   const [selectedDay, setSelectedDay] = useState(DAYS[new Date().getDay() - 1] || DAYS[0])
-  const daySchedule = SCHEDULE.filter((s) => s.day === selectedDay).sort((a, b) =>
-    a.startTime.localeCompare(b.startTime),
-  )
+  const schedulesQuery = useSchedules()
+  const subjectsQuery = useSubjects()
+  const subjectMap = new Map(subjectsQuery.data?.map((s) => [s.id, s]) ?? [])
+  const getSubject = (id: string) => subjectMap.get(id)
+
+  const daySchedule = (schedulesQuery.data ?? [])
+    .filter((s) => s.day === selectedDay)
+    .sort((a, b) => a.start_time.localeCompare(b.start_time))
+
+  if (schedulesQuery.isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-container border-t-transparent" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 pb-8">
@@ -63,7 +77,7 @@ export default function TimetablePage() {
 
           {/* Grid Body */}
           <div className="relative">
-            {TIME_SLOTS.map((time, ti) => (
+            {TIME_SLOTS.map((time) => (
               <div
                 key={time}
                 className="grid grid-cols-[80px_repeat(5,1fr)] border-b border-outline-variant/10 last:border-b-0"
@@ -72,12 +86,12 @@ export default function TimetablePage() {
                   {time}
                 </div>
                 {DAYS.map((day) => {
-                  const slot = SCHEDULE.find(
-                    (s) => s.day === day && s.startTime <= time && s.endTime > time,
+                  const slot = schedulesQuery.data?.find(
+                    (s) => s.day === day && s.start_time <= time && s.end_time > time,
                   )
                   if (!slot) return <div key={`${day}-${time}`} className="p-2" />
-                  const subject = getSubject(slot.subjectId)
-                  const isFirst = slot.startTime === time
+                  const subject = getSubject(slot.subject_id)
+                  const isFirst = slot.start_time === time
                   if (!isFirst) return <div key={`${day}-${time}`} className="p-2" />
                   return (
                     <div
@@ -92,7 +106,7 @@ export default function TimetablePage() {
                         {subject?.name}
                       </p>
                       <p className="mt-0.5 text-label-sm text-on-surface-variant">
-                        {slot.startTime} – {slot.endTime}
+                        {slot.start_time} – {slot.end_time}
                       </p>
                       <p className="text-label-sm text-on-surface-variant">{slot.room}</p>
                     </div>
@@ -123,7 +137,7 @@ export default function TimetablePage() {
           ) : (
             <div className="space-y-3">
               {daySchedule.map((s, i) => {
-                const subject = getSubject(s.subjectId)
+                const subject = getSubject(s.subject_id)
                 return (
                   <div
                     key={s.id}
@@ -132,9 +146,9 @@ export default function TimetablePage() {
                   >
                     {/* Time Column */}
                     <div className="flex flex-col items-center gap-1">
-                      <span className="text-label-sm font-bold text-on-surface">{s.startTime}</span>
+                      <span className="text-label-sm font-bold text-on-surface">{s.start_time}</span>
                       <span className="text-label-sm text-on-surface-variant">–</span>
-                      <span className="text-label-sm text-on-surface-variant">{s.endTime}</span>
+                      <span className="text-label-sm text-on-surface-variant">{s.end_time}</span>
                     </div>
 
                     {/* Divider */}
@@ -155,7 +169,7 @@ export default function TimetablePage() {
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-3.5 w-3.5" />
-                          {s.startTime} – {s.endTime}
+                          {s.start_time} – {s.end_time}
                         </span>
                       </div>
                       <div className="mt-2">
@@ -176,7 +190,7 @@ export default function TimetablePage() {
           <h3 className="mb-4 font-headline text-headline-md text-on-surface">Weekly Overview</h3>
           <div className="grid grid-cols-5 gap-2">
             {DAYS.map((day) => {
-              const count = SCHEDULE.filter((s) => s.day === day).length
+              const count = (schedulesQuery.data ?? []).filter((s) => s.day === day).length
               return (
                 <div
                   key={day}
