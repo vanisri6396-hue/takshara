@@ -18,6 +18,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!email || !password) {
+      toast.error('Please enter both email and password')
+      return
+    }
     const { error } = await signIn(email, password)
     if (error) {
       toast.error(error)
@@ -47,6 +51,7 @@ export default function LoginPage() {
               placeholder="student@university.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
             />
 
             <div className="relative">
@@ -56,6 +61,7 @@ export default function LoginPage() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
               />
               <button
                 type="button"

@@ -55,20 +55,32 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   signIn: async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) return { error: error.message }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) {
+      const msg = error.message || 'Sign in failed'
+      return { error: msg }
+    }
+    if (!data.session) {
+      return { error: 'Please verify your email before signing in.' }
+    }
     return {}
   },
 
   signUp: async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: fullName },
       },
     })
-    if (error) return { error: error.message }
+    if (error) {
+      const msg = error.message || 'Sign up failed'
+      return { error: msg }
+    }
+    if (!data.session) {
+      return { error: 'Account created. Please verify your email before signing in.' }
+    }
     return {}
   },
 

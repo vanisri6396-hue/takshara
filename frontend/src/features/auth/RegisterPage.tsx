@@ -18,12 +18,20 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!name || !email || !password) {
+      toast.error('Please fill in all fields')
+      return
+    }
+    if (password.length < 6) {
+      toast.error('Password must be at least 6 characters')
+      return
+    }
     const { error } = await signUp(email, password, name)
     if (error) {
       toast.error(error)
     } else {
-      toast.success('Account created')
-      navigate('/dashboard')
+      toast.success('Account created! Redirecting...')
+      setTimeout(() => navigate('/dashboard'), 800)
     }
   }
 
@@ -52,6 +60,7 @@ export default function RegisterPage() {
               placeholder="John Doe"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
             />
 
             <Input
@@ -60,6 +69,7 @@ export default function RegisterPage() {
               placeholder="student@university.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
             />
 
             <div className="relative">
@@ -69,6 +79,7 @@ export default function RegisterPage() {
                 placeholder="Create a strong password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
               />
               <button
                 type="button"
