@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
+import { rateLimitedSignin, rateLimitedSignup } from '@/lib/rateLimiter'
 
 interface Profile {
   id: string
@@ -56,11 +57,12 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   signIn: async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await rateLimitedSignin(() => supabase.auth.signInWithPassword({ email, password }))
       if (error) {
         const code = (error as any).status
         const msg = error.message || 'Sign in failed'
         if (code === 400) return { error: `Auth rejected: ${msg}. Check Supabase Auth settings and site URL/email confirmations.` }
+        if (code === 429) return { error: 'Too many attempts. Please wait a moment and try again.' }
         return { error: msg }
       }
       if (!data.session) {
@@ -74,17 +76,18 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   signUp: async (email: string, password: string, fullName: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await rateLimitedSignup(() => supabase.auth.signUp({
         email,
         password,
         options: {
           data: { full_name: fullName },
         },
-      })
+      }))
       if (error) {
         const code = (error as any).status
         const msg = error.message || 'Sign up failed'
         if (code === 400) return { error: `Signup rejected: ${msg}. Verify password length, allowed emails, and Auth settings in Supabase.` }
+        if (code === 429) return { error: 'Too many attempts. Please wait a moment and try again.' }
         return { error: msg }
       }
       if (!data.session) {
