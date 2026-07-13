@@ -8,7 +8,8 @@ export function App() {
   const initialize = useAuthStore((s) => s.initialize)
 
   useEffect(() => {
-    initialize()
+    const cleanup = initialize()
+    return cleanup
   }, [initialize])
 
   return (

@@ -10,6 +10,8 @@ import TimetablePage from '@/features/timetable/TimetablePage'
 import NotesPage from '@/features/notes/NotesPage'
 import NoteEditorPage from '@/features/notes/NoteEditorPage'
 import AssignmentsPage from '@/features/assignments/AssignmentsPage'
+import ExamsPage from '@/features/exams/ExamsPage'
+import ProjectsPage from '@/features/projects/ProjectsPage'
 import AttendancePage from '@/features/attendance/AttendancePage'
 import AIPage from '@/features/ai-assistant/AIPage'
 import SettingsPage from '@/features/settings/SettingsPage'
@@ -63,6 +65,14 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.ASSIGNMENTS,
             element: <AssignmentsPage />,
+          },
+          {
+            path: '/exams',
+            element: <ExamsPage />,
+          },
+          {
+            path: '/projects',
+            element: <ProjectsPage />,
           },
           {
             path: ROUTES.ATTENDANCE,

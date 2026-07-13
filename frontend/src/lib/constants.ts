@@ -22,6 +22,8 @@ export const NAV_ITEMS = [
   { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: 'LayoutDashboard' },
   { label: 'Timetable', path: ROUTES.TIMETABLE, icon: 'Calendar' },
   { label: 'Assignments', path: ROUTES.ASSIGNMENTS, icon: 'ClipboardList' },
+  { label: 'Exams', path: '/exams', icon: 'BookOpen' },
+  { label: 'Projects', path: '/projects', icon: 'TrendingUp' },
   { label: 'Notes', path: ROUTES.NOTES, icon: 'BookOpen' },
   { label: 'Attendance', path: ROUTES.ATTENDANCE, icon: 'ClipboardCheck' },
   { label: 'AI Assistant', path: ROUTES.AI, icon: 'Sparkles' },
@@ -30,7 +32,7 @@ export const NAV_ITEMS = [
 /* ──────────────────────────── App Metadata ────────────────────── */
 
 export const APP_NAME = 'Takshara'
-export const APP_TAGLINE = 'AI-Powered Student OS'
+export const APP_TAGLINE = 'Student Operating System'
 
 /* ──────────────────────────── Subject Colors ──────────────────── */
 

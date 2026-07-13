@@ -4,6 +4,7 @@ import {
   Calendar,
   ClipboardList,
   BookOpen,
+  TrendingUp,
   ClipboardCheck,
   Sparkles,
   ChevronLeft,
@@ -17,6 +18,7 @@ const iconMap: Record<string, React.ReactNode> = {
   Calendar: <Calendar className="h-5 w-5" />,
   ClipboardList: <ClipboardList className="h-5 w-5" />,
   BookOpen: <BookOpen className="h-5 w-5" />,
+  TrendingUp: <TrendingUp className="h-5 w-5" />,
   ClipboardCheck: <ClipboardCheck className="h-5 w-5" />,
   Sparkles: <Sparkles className="h-5 w-5" />,
 }

@@ -110,6 +110,11 @@ export interface Assignment {
   status: 'pending' | 'submitted' | 'graded'
   grade?: number
   description?: string
+  priority?: 'low' | 'medium' | 'high'
+  reminder?: string
+  progress?: number
+  attachments?: string[]
+  subjects?: { name: string; code: string; color: string }
 }
 
 export interface AttendanceRecord {
@@ -117,6 +122,7 @@ export interface AttendanceRecord {
   subjectId: string
   date: string
   status: 'present' | 'absent' | 'late'
+  subjects?: { name: string; code: string; color: string }
 }
 
 export interface Note {
@@ -127,6 +133,80 @@ export interface Note {
   tags: string[]
   createdAt: string
   updatedAt: string
+  subjects?: { name: string; code: string; color: string } | null
+}
+
+/* ──────────────────────────── Exam ──────────────────────────── */
+
+export interface Exam {
+  id: string
+  title: string
+  subjectId: string
+  date: string
+  time: string
+  duration: string
+  room: string
+  syllabus: string
+  maxMarks: number
+  status: 'upcoming' | 'completed' | 'cancelled'
+  subjects?: { name: string; code: string; color: string }
+}
+
+/* ──────────────────────────── Project ──────────────────────────── */
+
+export interface Project {
+  id: string
+  title: string
+  subjectId: string
+  description: string
+  dueDate: string
+  status: 'pending' | 'in_progress' | 'completed'
+  progress: number
+  technologies: string[]
+  subjects?: { name: string; code: string; color: string }
+}
+
+/* ──────────────────────────── Notification ──────────────────────── */
+
+export type NotificationType = 
+  | 'assignment_due'
+  | 'exam_reminder'
+  | 'low_attendance'
+  | 'upcoming_class'
+  | 'goal_completed'
+  | 'assignment_graded'
+  | 'general'
+
+export interface Notification {
+  id: string
+  type: NotificationType
+  title: string
+  message: string
+  read: boolean
+  link?: string
+  createdAt: string
+}
+
+/* ──────────────────────────── Activity ──────────────────────────── */
+
+export type ActivityType = 
+  | 'assignment_created'
+  | 'assignment_submitted'
+  | 'assignment_graded'
+  | 'note_created'
+  | 'attendance_marked'
+  | 'exam_created'
+  | 'project_created'
+  | 'goal_created'
+  | 'goal_completed'
+
+export interface Activity {
+  id: string
+  type: ActivityType
+  message: string
+  timestamp: string
+  subjectId?: string
+  link?: string
 }
 
 /* ──────────────────────────── Dashboard ──────────────────────── */
@@ -139,11 +219,18 @@ export interface DashboardStats {
   upcomingClasses: number
   completedAssignments: number
   averageGrade: number
+  assignmentsDueToday: number
+  assignmentsDueTomorrow: number
+  overdueAssignments: number
+  upcomingExams: number
+  completionPercentage: number
+  weeklyAttendance: number[]
+  weeklyLabels: string[]
 }
 
 export interface ActivityItem {
   id: string
-  type: 'assignment_graded' | 'assignment_submitted' | 'note_created' | 'attendance' | 'reminder'
+  type: ActivityType
   message: string
   timestamp: string
   subjectId?: string
@@ -156,4 +243,17 @@ export interface StudyGoal {
   current: number
   unit: string
   subjectId?: string
+  completed?: boolean
+}
+
+export interface Settings {
+  theme: string
+  accent_color: string
+  font_size: string
+  push_notifications: boolean
+  email_reminders: boolean
+  assignment_alerts: string
+  two_factor_auth: boolean
+  session_timeout: string
+  data_sharing: string
 }
