@@ -14,12 +14,10 @@ import {
   CheckCircle2,
   FileText,
   Zap,
-  Plus,
   Lightbulb,
   Award,
   BarChart3,
   ArrowRight,
-  ChevronRight,
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -709,8 +707,6 @@ export default function DashboardPage() {
   const examsQuery = useExams()
   const goalsQuery = useStudyGoals()
   const activityQuery = useActivity()
-
-  const profile = useAuthStore((s) => s.profile)
 
   const isLoading =
     schedulesQuery.isLoading ||

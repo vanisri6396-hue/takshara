@@ -4,11 +4,9 @@ import {
   Calendar,
   Clock,
   MapPin,
-  FileText,
   Plus,
   Trash2,
   Edit2,
-  AlertTriangle,
   CheckCircle2,
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
@@ -28,8 +26,6 @@ const TABS: { label: string; value: Exam['status'] | 'all' }[] = [
   { label: 'Completed', value: 'completed' },
   { label: 'Cancelled', value: 'cancelled' },
 ]
-
-const DIALOG_TITLE = 'Exam'
 
 export default function ExamsPage() {
   const [activeTab, setActiveTab] = useState<Exam['status'] | 'all'>('all')

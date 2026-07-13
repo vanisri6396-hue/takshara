@@ -1,16 +1,12 @@
 import { useState } from 'react'
 import { User, Mail, Calendar, Edit2, Save, X } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { useAuthStore } from '@/stores/authStore'
 import { useUpdateProfile } from '@/hooks/useProfile'
-import { toast } from 'react-hot-toast'
-import { cn } from '@/lib/utils'
 
 export default function ProfilePage() {
-  const { user, profile, updateProfile } = useAuthStore()
+  const { user, profile } = useAuthStore()
   const updateProfileMutation = useUpdateProfile()
 
   const [isEditing, setIsEditing] = useState(false)

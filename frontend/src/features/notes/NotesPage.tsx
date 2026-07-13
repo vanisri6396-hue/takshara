@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BookOpen, Search, Plus, FileText, Sparkles } from 'lucide-react'
+import { BookOpen, Search, Plus, FileText, Sparkles, X, Tag } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { GlassCard } from '@/components/ui/GlassCard'
+import { Button } from '@/components/ui/Button'
 import { SubjectChip } from '@/components/shared/SubjectChip'
 import { useNotes } from '@/hooks/useNotes'
 import { useSubjects } from '@/hooks/useSubjects'
@@ -14,6 +15,11 @@ export default function NotesPage() {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSubject, setSelectedSubject] = useState<string | 'all'>('all')
+  const [showCreate, setShowCreate] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [newContent, setNewContent] = useState('')
+  const [newSubject, setNewSubject] = useState('')
+  const [newTags, setNewTags] = useState('')
 
   const notesQuery = useNotes()
   const subjectsQuery = useSubjects()
@@ -35,10 +41,21 @@ export default function NotesPage() {
   })
 
   const handleCreateNote = async () => {
-    const title = prompt('Note title:')
-    if (!title) return
-    const content = prompt('Note content:') || ''
-    await createMutation.mutateAsync({ title, content, subjectId: selectedSubject === 'all' ? undefined : selectedSubject })
+    if (!newTitle.trim()) {
+      toast.error('Please enter a title')
+      return
+    }
+    await createMutation.mutateAsync({
+      title: newTitle.trim(),
+      content: newContent,
+      subjectId: newSubject || undefined,
+      tags: newTags.split(',').map((t) => t.trim()).filter(Boolean),
+    })
+    setNewTitle('')
+    setNewContent('')
+    setNewSubject('')
+    setNewTags('')
+    setShowCreate(false)
     toast.success('Note created')
   }
 
@@ -59,7 +76,7 @@ export default function NotesPage() {
           <p className="mt-1 text-body-md text-on-surface-variant">Your study notes and summaries</p>
         </div>
         <button
-          onClick={handleCreateNote}
+          onClick={() => setShowCreate(true)}
           className="inline-flex items-center gap-2 rounded-radius-lg gradient-gold px-4 py-2.5 text-label-md font-bold text-on-primary transition-all duration-200 hover:opacity-90 glow-gold"
         >
           <Plus className="h-4 w-4" />
@@ -199,6 +216,79 @@ export default function NotesPage() {
           </button>
         </GlassCard>
       </div>
+
+      {/* Create Note Modal */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <Card variant="glass" className="w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-headline text-headline-md text-on-surface">Create Note</h3>
+              <button
+                onClick={() => setShowCreate(false)}
+                className="rounded-radius p-1 text-on-surface-variant hover:text-on-surface"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-label-sm text-on-surface-variant">Title *</label>
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="mt-1 w-full rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/30"
+                  placeholder="e.g., Calculus Lecture 1"
+                />
+              </div>
+              <div>
+                <label className="text-label-sm text-on-surface-variant">Subject</label>
+                <select
+                  value={newSubject}
+                  onChange={(e) => setNewSubject(e.target.value)}
+                  className="mt-1 w-full rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container"
+                >
+                  <option value="">No subject</option>
+                  {(subjectsQuery.data ?? []).map((sub) => (
+                    <option key={sub.id} value={sub.id}>{sub.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-label-sm text-on-surface-variant">Content</label>
+                <textarea
+                  value={newContent}
+                  onChange={(e) => setNewContent(e.target.value)}
+                  className="mt-1 w-full rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container min-h-[120px] resize-none"
+                  placeholder="Write your note..."
+                />
+              </div>
+              <div>
+                <label className="flex items-center gap-1 text-label-sm text-on-surface-variant">
+                  <Tag className="h-3.5 w-3.5" />
+                  Tags (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={newTags}
+                  onChange={(e) => setNewTags(e.target.value)}
+                  className="mt-1 w-full rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container"
+                  placeholder="e.g., calculus, derivatives"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <Button variant="ghost" onClick={() => setShowCreate(false)}>Cancel</Button>
+              <Button onClick={handleCreateNote} loading={createMutation.isPending}>
+                Create Note
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

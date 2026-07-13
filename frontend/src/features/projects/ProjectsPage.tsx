@@ -8,7 +8,6 @@ import {
   Edit2,
   CheckCircle2,
   Code2,
-  AlertTriangle,
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'

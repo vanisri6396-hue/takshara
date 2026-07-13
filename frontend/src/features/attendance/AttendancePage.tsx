@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { GraduationCap, Calendar, TrendingUp, AlertTriangle, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { SubjectChip } from '@/components/shared/SubjectChip'
