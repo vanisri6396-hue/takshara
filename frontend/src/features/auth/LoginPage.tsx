@@ -10,7 +10,6 @@ import { GlassCard } from '@/components/ui/GlassCard'
 import { AuthInput } from '@/features/auth/components/AuthInput'
 import { useAuthStore } from '@/stores/authStore'
 import { APP_NAME, APP_TAGLINE } from '@/lib/constants'
-import { rateLimitedSignin } from '@/lib/rateLimiter'
 import { cn } from '@/lib/utils'
 
 const loginSchema = z.object({
@@ -44,7 +43,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      const { error } = await rateLimitedSignin(() => signIn(data.email, data.password))
+      const { error } = await signIn(data.email, data.password)
       if (error) {
         toast.error(error)
       } else {
