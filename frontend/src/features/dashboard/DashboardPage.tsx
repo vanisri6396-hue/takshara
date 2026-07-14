@@ -18,6 +18,7 @@ import {
   Award,
   BarChart3,
   ArrowRight,
+  MapPin,
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -161,13 +162,22 @@ function TodayScheduleCard({ schedules }: { schedules: any[] }) {
 
   if (todaySchedule.length === 0) {
     return (
-      <Card variant="glass" className="p-6">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-headline text-headline-md text-on-surface">
+            <Calendar className="mr-2 inline h-5 w-5 text-primary-container" />
+            Today's Schedule
+          </h3>
+          <Badge variant="info" size="sm">
+            0 classes
+          </Badge>
+        </div>
         <div className="flex flex-col items-center gap-3 py-8">
           <Calendar className="h-10 w-10 text-on-surface-variant/30" />
           <p className="text-body-md text-on-surface-variant">No classes scheduled today</p>
           <p className="text-label-sm text-on-surface-variant/50">Enjoy your day off!</p>
         </div>
-      </Card>
+      </div>
     )
   }
 
@@ -231,6 +241,195 @@ function TodayScheduleCard({ schedules }: { schedules: any[] }) {
         </div>
       )}
     </div>
+  )
+}
+
+/* ──────────────────────────── Next Class Card ──────────────── */
+
+function NextClassCard({ schedules }: { schedules: any[] }) {
+  const subjectsQuery = useSubjects()
+  const subjectMap = new Map(subjectsQuery.data?.map((s) => [s.id, s]) ?? [])
+  const getSubject = (id: string) => subjectMap.get(id)
+
+  const now = new Date()
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  const dayName = now.toLocaleDateString('en-US', { weekday: 'long' })
+
+  const todaySchedule = schedules
+    .filter((s) => s.day === dayName)
+    .sort((a, b) => a.start_time.localeCompare(b.start_time))
+
+  const currentClass = todaySchedule.find(
+    (s) => s.start_time <= currentTime && s.end_time > currentTime,
+  )
+  const nextClass = todaySchedule.find(
+    (s) => s.start_time > currentTime && (!currentClass || s.start_time > currentClass.start_time),
+  )
+
+  if (!currentClass && !nextClass) {
+    return (
+      <GlassCard className="p-5">
+        <div className="flex items-center gap-3 mb-3">
+          <Clock className="h-5 w-5 text-primary-container" />
+          <h3 className="font-headline text-headline-md text-on-surface">Next Class</h3>
+        </div>
+        <div className="flex flex-col items-center gap-3 py-6">
+          <CheckCircle2 className="h-10 w-10 text-emerald-500/40" />
+          <p className="text-body-md text-on-surface-variant">No more classes today</p>
+          <p className="text-label-sm text-on-surface-variant/50">Enjoy your day!</p>
+        </div>
+      </GlassCard>
+    )
+  }
+
+  const displayClass = currentClass || nextClass
+  const subject = getSubject(displayClass.subject_id)
+  const isCurrent = !!currentClass
+
+  return (
+    <GlassCard className={cn('p-5 transition-all duration-300', isCurrent && 'glow-gold border-2 border-primary-container/30')}>
+      <div className="flex items-center gap-3 mb-3">
+        <Clock className="h-5 w-5 text-primary-container" />
+        <h3 className="font-headline text-headline-md text-on-surface">
+          {isCurrent ? 'Current Class' : 'Next Class'}
+        </h3>
+        {isCurrent && (
+          <Badge variant="info" size="sm" className="animate-pulse">
+            Now
+          </Badge>
+        )}
+      </div>
+      <div className="flex items-start gap-4">
+        <div
+          className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-radius-lg text-label-md font-bold"
+          style={{ backgroundColor: `${subject?.color || '#666'}20`, color: subject?.color || '#666' }}
+        >
+          {displayClass.start_time}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-body-md font-semibold text-on-surface truncate">
+            {subject?.name || 'Unknown'}
+          </p>
+          <div className="mt-1 flex items-center gap-3 text-label-sm text-on-surface-variant">
+            <span className="flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" />
+              {displayClass.start_time} – {displayClass.end_time}
+            </span>
+            <span className="flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5" />
+              {displayClass.room}
+            </span>
+          </div>
+          {displayClass.faculty_name && (
+            <p className="mt-1 text-label-sm text-on-surface-variant">{displayClass.faculty_name}</p>
+          )}
+        </div>
+      </div>
+      {!isCurrent && nextClass && (
+        <div className="mt-3 flex items-center gap-2 text-label-sm text-primary-container">
+          <span>Starts in {getTimeUntil(nextClass.start_time)}</span>
+        </div>
+      )}
+    </GlassCard>
+  )
+}
+
+function getTimeUntil(time: string): string {
+  const now = new Date()
+  const [hours, minutes] = time.split(':').map(Number)
+  const target = new Date(now)
+  target.setHours(hours, minutes, 0, 0)
+  
+  if (target < now) {
+    target.setDate(target.getDate() + 1)
+  }
+  
+  const diff = target.getTime() - now.getTime()
+  const diffHours = Math.floor(diff / (1000 * 60 * 60))
+  const diffMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  
+  if (diffHours > 0) {
+    return `${diffHours}h ${diffMinutes}m`
+  }
+  return `${diffMinutes}m`
+}
+
+/* ──────────────────────────── Remaining Classes ─────────────── */
+
+function RemainingClassesCard({ schedules }: { schedules: any[] }) {
+  const now = new Date()
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  const dayName = now.toLocaleDateString('en-US', { weekday: 'long' })
+
+  const remainingClasses = schedules.filter((s) => {
+    if (s.day !== dayName) return false
+    return s.end_time > currentTime
+  }).length
+
+  const totalToday = schedules.filter((s) => s.day === dayName).length
+
+  return (
+    <GlassCard className="p-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-label-sm text-on-surface-variant">Remaining Today</p>
+          <p className="mt-1 font-headline text-headline-lg text-on-surface">
+            {remainingClasses} <span className="text-label-sm text-on-surface-variant">/ {totalToday}</span>
+          </p>
+        </div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-container/10">
+          <Calendar className="h-6 w-6 text-primary-container" />
+        </div>
+      </div>
+      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface-container-highest">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-primary-container to-primary transition-all duration-1000"
+          style={{ width: `${totalToday > 0 ? (remainingClasses / totalToday) * 100 : 0}%` }}
+        />
+      </div>
+    </GlassCard>
+  )
+}
+
+/* ──────────────────────────── Weekly Preview ────────────────── */
+
+function WeeklyPreview({ schedules }: { schedules: any[] }) {
+  const DAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const today = new Date()
+  const currentDayIndex = today.getDay() || 7 // Make Sunday = 7
+
+  const weeklyData = DAYS_SHORT.map((day, index) => {
+    const fullDay = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][index]
+    const count = schedules.filter((s) => s.day === fullDay).length
+    const isToday = index === currentDayIndex - 1
+    return { day, count, isToday }
+  })
+
+  return (
+    <GlassCard className="p-5">
+      <h3 className="mb-4 font-headline text-headline-md text-on-surface">Weekly Preview</h3>
+          <div className="grid grid-cols-7 gap-2">
+            {weeklyData.map((data) => (
+              <div
+                key={data.day}
+                className={cn(
+                  'flex flex-col items-center gap-2 rounded-radius-lg p-3 transition-all duration-200',
+                  data.isToday
+                    ? 'bg-primary-container/15 border-2 border-primary-container/30'
+                    : 'bg-surface-container-low border-2 border-transparent'
+                )}
+              >
+                <span className={cn('text-label-sm font-medium', data.isToday ? 'text-primary-container' : 'text-on-surface-variant')}>
+                  {data.day}
+                </span>
+                <span className={cn('font-headline text-headline-lg', data.isToday ? 'text-primary-container' : 'text-on-surface')}>
+                  {data.count}
+                </span>
+                <span className="text-label-sm text-on-surface-variant">classes</span>
+              </div>
+            ))}
+          </div>
+    </GlassCard>
   )
 }
 
@@ -829,6 +1028,21 @@ export default function DashboardPage() {
             <Card variant="glass" className="p-5">
               <TodayScheduleCard schedules={schedulesQuery.data ?? []} />
             </Card>
+          </div>
+
+          {/* Next Class & Remaining Classes */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="animate-fade-in-up" style={{ animationDelay: '250ms' }}>
+              <NextClassCard schedules={schedulesQuery.data ?? []} />
+            </div>
+            <div className="animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+              <RemainingClassesCard schedules={schedulesQuery.data ?? []} />
+            </div>
+          </div>
+
+          {/* Weekly Preview */}
+          <div className="animate-fade-in-up" style={{ animationDelay: '350ms' }}>
+            <WeeklyPreview schedules={schedulesQuery.data ?? []} />
           </div>
 
           {/* Deadlines + Exams Row */}
