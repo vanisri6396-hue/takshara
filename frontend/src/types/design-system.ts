@@ -96,10 +96,15 @@ export interface Subject {
 export interface Schedule {
   id: string
   subjectId: string
+  facultyName: string
   day: string
   startTime: string
   endTime: string
   room: string
+  classType: 'theory' | 'lab' | 'tutorial' | 'seminar'
+  notes: string
+  subjectColor: string
+  subjects?: { name: string; code: string; color: string }
 }
 
 export interface Assignment {

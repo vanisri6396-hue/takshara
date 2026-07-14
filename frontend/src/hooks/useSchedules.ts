@@ -54,3 +54,23 @@ export function useDeleteSchedule() {
     },
   })
 }
+
+export function useUpdateSchedule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Schedule> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('schedules')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+      if (error) throw error
+      return data as Schedule
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['schedules'] })
+    },
+  })
+}
