@@ -8,7 +8,7 @@ export const GlassCard = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'glass rounded-radius-lg p-4 transition-all duration-200 hover:glass-strong',
+          'glass rounded-radius-lg p-4 transition-all duration-200 hover:glass-strong hover-lift focus:outline-none',
           className,
         )}
         {...props}

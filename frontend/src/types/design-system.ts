@@ -64,6 +64,7 @@ export interface ModalProps {
   onClose: () => void
   title?: string
   children: ReactNode
+  footer?: ReactNode
 }
 
 /* ──────────────────────────── Subject Chip ─────────────────────── */
@@ -175,19 +176,21 @@ export interface Project {
 /* ──────────────────────────── Notification ──────────────────────── */
 
 export type NotificationType = 
-  | 'assignment_due'
-  | 'exam_reminder'
-  | 'low_attendance'
-  | 'upcoming_class'
-  | 'goal_completed'
-  | 'assignment_graded'
-  | 'general'
+  | 'assignment'
+  | 'timetable'
+  | 'attendance'
+  | 'reminder'
+  | 'system'
+  | 'achievement'
+
+export type NotificationPriority = 'low' | 'medium' | 'high'
 
 export interface Notification {
   id: string
   type: NotificationType
   title: string
   message: string
+  priority: NotificationPriority
   read: boolean
   link?: string
   createdAt: string

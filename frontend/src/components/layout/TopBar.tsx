@@ -6,6 +6,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import { useAuthStore } from '@/stores/authStore'
 import { useNotifications, useUnreadCount, useMarkNotificationRead, useMarkAllRead } from '@/hooks/useNotifications'
 import { cn, formatDate } from '@/lib/utils'
+import { LogoutButton } from './LogoutButton'
 
 const notificationIcons: Record<string, React.ReactNode> = {
   assignment_due: <Clock className="h-4 w-4" />,
@@ -209,17 +210,27 @@ export function TopBar() {
                 </div>
                 <div className="p-1">
                   <button
-                    onClick={() => { navigate('/profile'); setShowProfile(false) }}
+                    onClick={() => {
+                      navigate('/profile')
+                      setShowProfile(false)
+                    }}
                     className="flex w-full items-center gap-2 rounded-radius-lg px-3 py-2 text-body-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-200"
                   >
                     Profile
                   </button>
                   <button
-                    onClick={() => { navigate('/settings'); setShowProfile(false) }}
+                    onClick={() => {
+                      navigate('/settings')
+                      setShowProfile(false)
+                    }}
                     className="flex w-full items-center gap-2 rounded-radius-lg px-3 py-2 text-body-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-200"
                   >
                     Settings
                   </button>
+                  <div className="px-1 py-1">
+                    {/* Logout clears Supabase session + React Query cache (via authStore) */}
+                    <LogoutButton />
+                  </div>
                 </div>
               </div>
             </div>

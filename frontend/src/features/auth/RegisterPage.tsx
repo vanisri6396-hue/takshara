@@ -62,29 +62,28 @@ export default function RegisterPage() {
   const isFormValid = isValid && fullName.trim().length >= 3 && email.length > 0 && password.length >= 8
   const isPending = isSubmitting
 
-  const onSubmit = async (data: RegisterForm) => {
-    try {
-      const trimmedName = data.fullName.trim()
-      const { error } = await signUp(data.email, data.password, trimmedName)
-      if (error) {
-        toast.error(error)
-      } else {
-        toast.success('Account created successfully.')
-        setTimeout(() => navigate('/dashboard'), 800)
-      }
-    } catch {
-      toast.error('Something went wrong. Please try again.')
-    }
-  }
-
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' && isFormValid &&!isPending) {
-        handleSubmit(onSubmit)()
+      if (e.key === 'Enter' && isFormValid && !isPending) {
+        handleSubmit(async (data) => {
+          try {
+            const trimmedName = data.fullName.trim()
+            const { error } = await signUp(data.email, data.password, trimmedName)
+            if (error) {
+              toast.error(error)
+            } else {
+              toast.success('Account created successfully.')
+              setTimeout(() => navigate('/dashboard'), 800)
+            }
+          } catch {
+            toast.error('Something went wrong. Please try again.')
+          }
+        })()
       }
     },
-    [isFormValid, isPending, handleSubmit, onSubmit]
+    [handleSubmit, isFormValid, isPending, navigate, signUp]
   )
+
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => e.getModifierState && setCapsLockOn(e.getModifierState('CapsLock'))
@@ -110,9 +109,27 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+          <form
+            className="space-y-5"
+            noValidate
+            onSubmit={handleSubmit(async (data) => {
+              try {
+                const trimmedName = data.fullName.trim()
+                const { error } = await signUp(data.email, data.password, trimmedName)
+                if (error) {
+                  toast.error(error)
+                } else {
+                  toast.success('Account created successfully.')
+                  setTimeout(() => navigate('/dashboard'), 800)
+                }
+              } catch {
+                toast.error('Something went wrong. Please try again.')
+              }
+            })}
+          >
             <AuthInput label="Full Name" {...register('fullName')} error={errors.fullName?.message} autoComplete="name" />
             <AuthInput label="Email Address" {...register('email')} error={errors.email?.message} autoComplete="email" />
+
 
             <div>
               <label htmlFor="password" className="text-label-sm text-on-surface-variant">

@@ -41,28 +41,27 @@ export default function LoginPage() {
   const isFormValid = isValid && email.length > 0 && password.length > 0
   const isPending = isSubmitting
 
-  const onSubmit = async (data: LoginForm) => {
-    try {
-      const { error } = await signIn(data.email, data.password)
-      if (error) {
-        toast.error(error)
-      } else {
-        toast.success('Signed in successfully.')
-        navigate('/dashboard')
-      }
-    } catch {
-      toast.error('Something went wrong. Please try again.')
-    }
-  }
-
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter' && isFormValid && !isPending) {
-        handleSubmit(onSubmit)()
+        handleSubmit(async (data) => {
+          try {
+            const { error } = await signIn(data.email, data.password)
+            if (error) {
+              toast.error(error)
+            } else {
+              toast.success('Signed in successfully.')
+              navigate('/dashboard')
+            }
+          } catch {
+            toast.error('Something went wrong. Please try again.')
+          }
+        })()
       }
     },
-    [isFormValid, isPending, handleSubmit, onSubmit]
+    [handleSubmit, isFormValid, isPending, navigate, signIn]
   )
+
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => e.getModifierState && setCapsLockOn(e.getModifierState('CapsLock'))
@@ -86,7 +85,23 @@ export default function LoginPage() {
             <p className="mt-1 text-body-md text-on-surface-variant">{APP_TAGLINE}</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+          <form
+            className="space-y-5"
+            noValidate
+            onSubmit={handleSubmit(async (data) => {
+              try {
+                const { error } = await signIn(data.email, data.password)
+                if (error) {
+                  toast.error(error)
+                } else {
+                  toast.success('Signed in successfully.')
+                  navigate('/dashboard')
+                }
+              } catch {
+                toast.error('Something went wrong. Please try again.')
+              }
+            })}
+          >
             <AuthInput label="Email Address" {...register('email')} error={errors.email?.message} autoComplete="email" />
 
             <div>

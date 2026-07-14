@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { useSchedules, useCreateSchedule, useUpdateSchedule, useDeleteSchedule } from '@/hooks/useSchedules'
 import { useSubjects } from '@/hooks/useSubjects'
+import { SubjectSelect } from '@/components/shared/SubjectSelect'
 import { cn } from '@/lib/utils'
 import type { Schedule } from '@/types/design-system'
 
@@ -67,17 +68,10 @@ function ScheduleFormModal({
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
-  const selectRef = useRef<HTMLSelectElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
 
-  // Focus first input when modal opens
-  useEffect(() => {
-    if (open && selectRef.current) {
-      setTimeout(() => selectRef.current?.focus(), 100)
-    }
-  }, [open])
-
-  // Reset form when schedule changes
+  // Reset form when modal opens
   useEffect(() => {
     if (open) {
       setFormData({
@@ -93,6 +87,7 @@ function ScheduleFormModal({
       })
       setErrors({})
       setTouched({})
+      setSubmitting(false)
     }
   }, [open, schedule, subjects])
 
@@ -105,10 +100,8 @@ function ScheduleFormModal({
     if (!formData.startTime) newErrors.startTime = 'Start time is required'
     if (!formData.endTime) newErrors.endTime = 'End time is required'
     if (!formData.room?.trim()) newErrors.room = 'Room number is required'
-    if (formData.startTime && formData.endTime) {
-      if (formData.endTime <= formData.startTime) {
-        newErrors.endTime = 'End time must be after start time'
-      }
+    if (formData.startTime && formData.endTime && formData.endTime <= formData.startTime) {
+      newErrors.endTime = 'End time must be after start time'
     }
 
     setErrors(newErrors)
@@ -122,10 +115,22 @@ function ScheduleFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setTouched({ subjectId: true, facultyName: true, day: true, startTime: true, endTime: true, room: true })
-    if (validate()) {
-      onSubmit(formData)
+    if (submitting) return
+    const allTouched = { subjectId: true, facultyName: true, day: true, startTime: true, endTime: true, room: true }
+    setTouched(allTouched)
+    if (!validate()) {
+      // Auto-focus the first invalid field
+      const firstInvalid = (['subjectId', 'facultyName', 'day', 'startTime', 'endTime', 'room'] as const).find(
+        (f) => errors[f],
+      )
+      if (firstInvalid) {
+        const el = formRef.current?.querySelector<HTMLElement>(`#${firstInvalid}`)
+        el?.focus()
+      }
+      return
     }
+    setSubmitting(true)
+    onSubmit(formData)
   }
 
   const handleSubjectChange = (subjectId: string) => {
@@ -135,49 +140,45 @@ function ScheduleFormModal({
       subjectId,
       subjectColor: subject?.color || SUBJECT_COLORS[0],
     })
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onClose()
-    }
+    setTouched((prev) => ({ ...prev, subjectId: true }))
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={schedule ? 'Edit Class' : 'Add New Class'}>
-      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-5">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={schedule ? 'Edit Class' : 'Add New Class'}
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+            disabled={submitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="schedule-form"
+            loading={submitting}
+            disabled={submitting}
+          >
+            {schedule ? 'Save Class' : 'Save Class'}
+          </Button>
+        </>
+      }
+    >
+      <form id="schedule-form" ref={formRef} onSubmit={handleSubmit} className="space-y-5">
         {/* Subject */}
         <div className="space-y-2">
-          <label htmlFor="subject" className="block text-label-sm font-semibold text-on-surface">
-            Subject <span className="text-red-400">*</span>
-          </label>
-          <select
-            ref={selectRef}
+          <SubjectSelect
             id="subject"
+            label="Subject *"
             value={formData.subjectId}
-            onChange={(e) => handleSubjectChange(e.target.value)}
-            onBlur={() => handleBlur('subjectId')}
-            aria-invalid={!!errors.subjectId}
-            aria-describedby={errors.subjectId ? 'subject-error' : undefined}
-            className={cn(
-              'w-full rounded-radius-lg border-2 bg-surface-container-low px-4 py-3 text-body-sm text-on-surface transition-all duration-200',
-              'border-outline-variant/30 focus:border-primary-container focus:outline-none focus:ring-4 focus:ring-primary-container/10',
-              touched.subjectId && errors.subjectId && 'border-red-500'
-            )}
-          >
-            <option value="">Select a subject</option>
-            {subjects.map((subject) => (
-              <option key={subject.id} value={subject.id}>
-                {subject.name} ({subject.code})
-              </option>
-            ))}
-          </select>
-          {touched.subjectId && errors.subjectId && (
-            <p id="subject-error" className="text-label-sm text-red-400 flex items-center gap-1">
-              <AlertCircle className="h-3.5 w-3.5" />
-              {errors.subjectId}
-            </p>
-          )}
+            onChange={handleSubjectChange}
+            error={touched.subjectId ? errors.subjectId : undefined}
+          />
         </div>
 
         {/* Faculty Name */}
@@ -186,7 +187,6 @@ function ScheduleFormModal({
             Faculty Name <span className="text-red-400">*</span>
           </label>
           <input
-            ref={inputRef}
             id="faculty"
             type="text"
             value={formData.facultyName}

@@ -6,32 +6,32 @@
 @theme {
   /* Font Families */
   --font-headline: "Libre Caslon Text", serif;
-  --font-body: "Inter", sans-serif;
-  --font-label: "JetBrains Mono", monospace;
+  --font-body: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --font-label: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Surface Colors */
-  --color-surface: #051424;
-  --color-surface-dim: #051424;
-  --color-surface-bright: #2c3a4c;
-  --color-surface-container-lowest: #010f1f;
-  --color-surface-container-low: #0d1c2d;
-  --color-surface-container: #122131;
-  --color-surface-container-high: #1c2b3c;
-  --color-surface-container-highest: #273647;
+  /* Surface Colors — Obsidian Dark */
+  --color-surface: #070A0D; /* obsidian */
+  --color-surface-dim: #05070A;
+  --color-surface-bright: #0E141B;
+  --color-surface-container-lowest: #030508;
+  --color-surface-container-low: #0A1016;
+  --color-surface-container: #0F1620;
+  --color-surface-container-high: #16202B;
+  --color-surface-container-highest: #1B2633;
 
   /* On-Surface Colors */
   --color-on-surface: #d4e4fa;
   --color-on-surface-variant: #d0c5af;
 
-  /* Primary (Gold) */
-  --color-primary: #f2ca50;
-  --color-primary-container: #d4af37;
-  --color-primary-fixed: #ffe088;
-  --color-primary-fixed-dim: #e9c349;
-  --color-on-primary: #3c2f00;
-  --color-on-primary-container: #554300;
-  --color-on-primary-fixed: #241a00;
-  --color-on-primary-fixed-variant: #574500;
+  /* Primary (Champagne Gold) */
+  --color-primary: #E6C37A; /* champagne */
+  --color-primary-container: #C9A35C;
+  --color-primary-fixed: #F6E1B2;
+  --color-primary-fixed-dim: #EBD289;
+  --color-on-primary: #3A2A00;
+  --color-on-primary-container: #4B3700;
+  --color-on-primary-fixed: #2A1D00;
+  --color-on-primary-fixed-variant: #5A4300;
 
   /* Secondary */
   --color-secondary: #bec6e0;
@@ -39,11 +39,17 @@
   --color-on-secondary: #283044;
   --color-on-secondary-container: #adb4ce;
 
-  /* Tertiary */
-  --color-tertiary: #c3cee6;
-  --color-tertiary-container: #a8b3ca;
-  --color-on-tertiary: #263143;
-  --color-on-tertiary-container: #3a4559;
+  /* Secondary / Emerald Accents */
+  --color-secondary: #6FE7C8;
+  --color-secondary-container: #144C3C;
+  --color-on-secondary: #0A1F17;
+  --color-on-secondary-container: #B7F7E0;
+
+  /* Tertiary (Emerald Tint) */
+  --color-tertiary: #2FD3A8;
+  --color-tertiary-container: #154B3F;
+  --color-on-tertiary: #073328;
+  --color-on-tertiary-container: #9FF2D7;
 
   /* Error */
   --color-error: #ffb4ab;
@@ -63,11 +69,11 @@
   /* Surface Tint */
   --color-surface-tint: #e9c349;
 
-  /* Border Radius */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  /* Border Radius (18–24px luxury corners) */
+  --radius-sm: 0.75rem; /* ~12px */
+  --radius-md: 1.125rem; /* ~18px */
+  --radius-lg: 1.25rem; /* ~20px */
+  --radius-xl: 1.5rem; /* ~24px */
 
   /* Spacing */
   --spacing-gutter: 24px;
@@ -80,21 +86,24 @@
 
 /* Glassmorphism Utilities */
 @utility glass {
-  background: rgba(18, 33, 49, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: rgba(15, 22, 32, 0.52);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(230, 195, 122, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 28px rgba(0, 0, 0, 0.35);
 }
 
 @utility glass-strong {
-  background: rgba(27, 44, 60, 0.8);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 22, 32, 0.72);
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
+  border: 1px solid rgba(230, 195, 122, 0.26);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 8px 32px rgba(0, 0, 0, 0.4);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 60px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(111, 231, 200, 0.07);
 }
 
 /* Gold Gradient */
@@ -104,8 +113,17 @@
 
 /* Gold Glow */
 @utility glow-gold {
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3), 0 0 40px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 18px rgba(230, 195, 122, 0.35), 0 0 42px rgba(230, 195, 122, 0.14);
 }
+
+@utility glow-emerald {
+  box-shadow: 0 0 18px rgba(47, 211, 168, 0.30), 0 0 42px rgba(47, 211, 168, 0.12);
+}
+
+@utility hover-lift {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
 
 /* Surface Tiers */
 @utility surface-level-0 {

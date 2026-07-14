@@ -22,10 +22,23 @@
 
 ## Database Migrations
 
-Run these migrations in **Supabase Dashboard → SQL Editor**:
+Run the migrations in **Supabase Dashboard → SQL Editor** (New query → paste → Run), in order.
+A single consolidated file is provided for convenience:
 
-- `database/migrations/001_schema.sql`
-- `database/migrations/002_storage.sql`
+- **`database/apply_all_migrations.sql`** — applies all migrations 001→006 in one run (idempotent, safe to re-run).
+
+Or run them individually, in this exact order:
+
+- `database/migrations/001_schema.sql` (profiles, subjects, schedules, notes, assignments, attendance, study_goals, user_settings + RLS + triggers)
+- `database/migrations/002_storage.sql` (avatars storage bucket + policies)
+- `database/migrations/003_features.sql` (exams, projects, notifications, activity_log)
+- `database/migrations/004_timetable_extended.sql` (schedules: faculty_name, class_type, notes, subject_color)
+- `database/migrations/005_assignments_extended.sql` (assignments: priority, estimated_study_time, attachment_link)
+- `database/migrations/006_notifications_extended.sql` (notifications: priority + updated type categories)
+
+> **IMPORTANT:** All six migrations must be applied. If any table is missing, the frontend
+> receives `404` errors from `/rest/v1/<table>` (PostgREST "relation does not exist").
+> Running `database/apply_all_migrations.sql` once resolves this.
 
 ## Auth Configuration
 

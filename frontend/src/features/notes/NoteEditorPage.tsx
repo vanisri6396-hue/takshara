@@ -30,7 +30,8 @@ export default function NoteEditorPage() {
       setTitle(note.title)
       setContent(note.content)
     }
-  }, [note?.id, note?.title, note?.content])
+  }, [note])
+
 
   const handleSave = async () => {
     if (!id || !note) return

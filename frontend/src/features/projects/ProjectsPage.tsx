@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/Badge'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { SubjectChip } from '@/components/shared/SubjectChip'
+import { SubjectSelect } from '@/components/shared/SubjectSelect'
 import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from '@/hooks/useProjects'
 import { useSubjects } from '@/hooks/useSubjects'
 import { toast } from 'react-hot-toast'
@@ -389,19 +390,11 @@ export default function ProjectsPage() {
               </div>
 
               {/* Subject */}
-              <div>
-                <label className="text-label-sm text-on-surface-variant">Subject *</label>
-                <select
-                  value={formData.subjectId}
-                  onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })}
-                  className="mt-1 w-full rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container"
-                >
-                  <option value="">Select subject</option>
-                  {(subjectsQuery.data ?? []).map((sub) => (
-                    <option key={sub.id} value={sub.id}>{sub.name}</option>
-                  ))}
-                </select>
-              </div>
+              <SubjectSelect
+                label="Subject *"
+                value={formData.subjectId}
+                onChange={(id) => setFormData({ ...formData, subjectId: id })}
+              />
 
               {/* Description */}
               <div>

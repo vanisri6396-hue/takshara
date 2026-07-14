@@ -90,12 +90,30 @@ export function useCreateNotification() {
           type: notification.type,
           title: notification.title,
           message: notification.message,
+          priority: notification.priority || 'medium',
           link: notification.link || '',
         }])
         .select()
         .single()
       if (error) throw error
       return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
+  })
+}
+
+export function useDeleteNotification() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', id)
+      if (error) throw error
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })

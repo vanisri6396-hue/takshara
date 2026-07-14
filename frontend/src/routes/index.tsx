@@ -2,6 +2,8 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ProtectedRoute } from './ProtectedRoute'
 import { ROUTES } from './routePaths'
+import { AuthGate } from './AuthGate'
+
 
 /* ──────────────────────────── Page Imports ─────────────────────── */
 
@@ -24,75 +26,65 @@ import NotFoundPage from '@/features/not-found/NotFoundPage'
 
 export const router = createBrowserRouter([
   {
+    path: '/',
+    element: (
+      <ProtectedRoute>
+        <AppLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <Navigate to={ROUTES.DASHBOARD} replace /> },
+      { path: ROUTES.DASHBOARD, element: <DashboardPage /> },
+      { path: ROUTES.TIMETABLE, element: <TimetablePage /> },
+      { path: ROUTES.NOTES, element: <NotesPage /> },
+      { path: ROUTES.NOTE_DETAIL, element: <NoteEditorPage /> },
+      { path: ROUTES.ASSIGNMENTS, element: <AssignmentsPage /> },
+      { path: '/exams', element: <ExamsPage /> },
+      { path: '/projects', element: <ProjectsPage /> },
+      { path: ROUTES.ATTENDANCE, element: <AttendancePage /> },
+      { path: ROUTES.AI, element: <AIPage /> },
+      { path: ROUTES.SETTINGS, element: <SettingsPage /> },
+      { path: ROUTES.PROFILE, element: <ProfilePage /> },
+    ],
+  },
+  // Auth routes (aliases to prevent accidental 404s)
+  // Keep canonical paths under /auth/*, but also support /login and /register.
+  {
     path: '/auth',
     children: [
       {
         path: 'login',
-        element: <LoginPage />,
+        element: (
+          <AuthGate mode="login">
+            <LoginPage />
+          </AuthGate>
+        ),
       },
       {
         path: 'register',
-        element: <RegisterPage />,
+        element: (
+          <AuthGate mode="register">
+            <RegisterPage />
+          </AuthGate>
+        ),
       },
     ],
   },
   {
-    element: <ProtectedRoute />,
-    children: [
-      {
-        element: <AppLayout />,
-        children: [
-          {
-            index: true,
-            element: <Navigate to={ROUTES.DASHBOARD} replace />,
-          },
-          {
-            path: ROUTES.DASHBOARD,
-            element: <DashboardPage />,
-          },
-          {
-            path: ROUTES.TIMETABLE,
-            element: <TimetablePage />,
-          },
-          {
-            path: ROUTES.NOTES,
-            element: <NotesPage />,
-          },
-          {
-            path: ROUTES.NOTE_DETAIL,
-            element: <NoteEditorPage />,
-          },
-          {
-            path: ROUTES.ASSIGNMENTS,
-            element: <AssignmentsPage />,
-          },
-          {
-            path: '/exams',
-            element: <ExamsPage />,
-          },
-          {
-            path: '/projects',
-            element: <ProjectsPage />,
-          },
-          {
-            path: ROUTES.ATTENDANCE,
-            element: <AttendancePage />,
-          },
-          {
-            path: ROUTES.AI,
-            element: <AIPage />,
-          },
-          {
-            path: ROUTES.SETTINGS,
-            element: <SettingsPage />,
-          },
-          {
-            path: ROUTES.PROFILE,
-            element: <ProfilePage />,
-          },
-        ],
-      },
-    ],
+    path: '/login',
+    element: (
+      <AuthGate mode="login">
+        <LoginPage />
+      </AuthGate>
+    ),
+  },
+  {
+    path: '/register',
+    element: (
+      <AuthGate mode="register">
+        <RegisterPage />
+      </AuthGate>
+    ),
   },
   {
     path: '*',

@@ -1,13 +1,13 @@
-import { Navigate, Outlet } from 'react-router-dom'
-import { ROUTES } from './routePaths'
+import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
-
 import type { ReactNode } from 'react'
+import { ROUTES } from './routePaths'
 
-export function ProtectedRoute({ children }: { children?: ReactNode }) {
+export function AuthGate({ children }: { mode: 'login' | 'register'; children: ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const isLoading = useAuthStore((s) => s.isLoading)
 
+  // Prevent UI flicker during session init
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -16,10 +16,11 @@ export function ProtectedRoute({ children }: { children?: ReactNode }) {
     )
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to={ROUTES.AUTH.LOGIN} replace />
+  // If already authenticated, keep them out of login/register
+  if (isAuthenticated) {
+    return <Navigate to={ROUTES.DASHBOARD} replace />
   }
 
-  // When used as a route wrapper, children will be provided; otherwise we fall back to Outlet.
-  return <>{children ?? <Outlet />}</>
+  return <>{children}</>
 }
+
