@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   ClipboardList,
   Calendar,
@@ -10,6 +10,10 @@ import {
   Trash2,
   Edit2,
   Flag,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  X,
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -41,6 +45,14 @@ export default function AssignmentsPage() {
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null)
   const [showDeleteId, setShowDeleteId] = useState<string | null>(null)
 
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [subjectFilter, setSubjectFilter] = useState<string>('all')
+  const [priorityFilter, setPriorityFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [sortBy, setSortBy] = useState<'dueDate' | 'priority'>('dueDate')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+
   const [formData, setFormData] = useState({
     title: '',
     subjectId: '',
@@ -61,10 +73,51 @@ export default function AssignmentsPage() {
   const updateMutation = useUpdateAssignment()
   const deleteMutation = useDeleteAssignment()
 
-  const filteredAssignments =
-    activeTab === 'all'
-      ? assignmentsQuery.data ?? []
-      : (assignmentsQuery.data ?? []).filter((a) => a.status === activeTab)
+  const filteredAssignments = useMemo(() => {
+    let result = assignmentsQuery.data ?? []
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter((a) => a.title.toLowerCase().includes(query))
+    }
+
+    // Apply subject filter
+    if (subjectFilter !== 'all') {
+      result = result.filter((a) => a.subjectId === subjectFilter)
+    }
+
+    // Apply priority filter
+    if (priorityFilter !== 'all') {
+      result = result.filter((a) => a.priority === priorityFilter)
+    }
+
+    // Apply status filter (in addition to tab filter)
+    if (statusFilter !== 'all') {
+      result = result.filter((a) => a.status === statusFilter)
+    }
+
+    // Apply tab filter
+    if (activeTab !== 'all') {
+      result = result.filter((a) => a.status === activeTab)
+    }
+
+    // Apply sorting
+    result = [...result].sort((a, b) => {
+      let comparison = 0
+
+      if (sortBy === 'dueDate') {
+        comparison = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+      } else if (sortBy === 'priority') {
+        const priorityOrder = { high: 0, medium: 1, low: 2 }
+        comparison = priorityOrder[a.priority || 'medium'] - priorityOrder[b.priority || 'medium']
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+
+    return result
+  }, [assignmentsQuery.data, searchQuery, subjectFilter, priorityFilter, statusFilter, activeTab, sortBy, sortOrder])
 
   const statusBadge = (status: Assignment['status']) => {
     switch (status) {
@@ -233,6 +286,121 @@ export default function AssignmentsPage() {
             </div>
           </GlassCard>
         </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="space-y-3 animate-fade-in-up">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search assignments by title..."
+            className="w-full rounded-radius-lg border border-outline-variant/20 bg-surface-container-low pl-10 pr-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/30"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Filter Dropdowns */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Subject Filter */}
+          <div>
+            <label className="text-label-sm text-on-surface-variant">Subject</label>
+            <select
+              value={subjectFilter}
+              onChange={(e) => setSubjectFilter(e.target.value)}
+              className="mt-1 w-full rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container"
+            >
+              <option value="all">All Subjects</option>
+              {(subjectsQuery.data ?? []).map((sub) => (
+                <option key={sub.id} value={sub.id}>{sub.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Priority Filter */}
+          <div>
+            <label className="text-label-sm text-on-surface-variant">Priority</label>
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="mt-1 w-full rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container"
+            >
+              <option value="all">All Priorities</option>
+              {PRIORITIES.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <label className="text-label-sm text-on-surface-variant">Status</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="mt-1 w-full rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container"
+            >
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="submitted">Submitted</option>
+              <option value="graded">Graded</option>
+            </select>
+          </div>
+
+          {/* Sort */}
+          <div>
+            <label className="text-label-sm text-on-surface-variant">Sort By</label>
+            <div className="mt-1 flex gap-2">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'dueDate' | 'priority')}
+                className="flex-1 rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container"
+              >
+                <option value="dueDate">Due Date</option>
+                <option value="priority">Priority</option>
+              </select>
+              <button
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-3 py-2.5 text-on-surface-variant transition-colors hover:text-on-surface"
+                aria-label="Toggle sort order"
+              >
+                {sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Filters Count */}
+        {(searchQuery || subjectFilter !== 'all' || priorityFilter !== 'all' || statusFilter !== 'all') && (
+          <div className="flex items-center gap-2 text-label-sm text-on-surface-variant">
+            <span>Active filters:</span>
+            {searchQuery && <Badge variant="info" size="sm">Search: {searchQuery}</Badge>}
+            {subjectFilter !== 'all' && <Badge variant="info" size="sm">Subject</Badge>}
+            {priorityFilter !== 'all' && <Badge variant="info" size="sm">Priority: {priorityFilter}</Badge>}
+            {statusFilter !== 'all' && <Badge variant="info" size="sm">Status: {statusFilter}</Badge>}
+            <button
+              onClick={() => {
+                setSearchQuery('')
+                setSubjectFilter('all')
+                setPriorityFilter('all')
+                setStatusFilter('all')
+              }}
+              className="text-primary-container hover:underline"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filter Tabs */}
