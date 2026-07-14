@@ -111,14 +111,15 @@ export interface Assignment {
   id: string
   title: string
   subjectId: string
+  description: string
   dueDate: string
+  priority: 'low' | 'medium' | 'high'
   status: 'pending' | 'submitted' | 'graded'
+  estimatedStudyTime: number
+  attachmentLink?: string
   grade?: number
-  description?: string
-  priority?: 'low' | 'medium' | 'high'
   reminder?: string
   progress?: number
-  attachments?: string[]
   subjects?: { name: string; code: string; color: string }
 }
 

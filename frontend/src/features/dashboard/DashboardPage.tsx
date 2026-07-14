@@ -917,7 +917,7 @@ export default function DashboardPage() {
   const pendingAssignments = useMemo(() => {
     if (!assignmentsQuery.data) return []
     return assignmentsQuery.data
-      .filter((a) => a.status === 'pending')
+      .filter((a) => a.status === 'pending' || a.status === 'submitted')
       .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
   }, [assignmentsQuery.data])
 

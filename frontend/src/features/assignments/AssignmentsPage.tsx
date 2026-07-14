@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import {
   ClipboardList,
@@ -46,6 +47,8 @@ export default function AssignmentsPage() {
     description: '',
     dueDate: '',
     priority: 'medium' as 'low' | 'medium' | 'high',
+    estimatedStudyTime: 0,
+    attachmentLink: '',
     reminder: '',
     progress: 0,
     status: 'pending' as Assignment['status'],
@@ -81,6 +84,8 @@ export default function AssignmentsPage() {
       description: '',
       dueDate: '',
       priority: 'medium',
+      estimatedStudyTime: 0,
+      attachmentLink: '',
       reminder: '',
       progress: 0,
       status: 'pending',
@@ -96,6 +101,8 @@ export default function AssignmentsPage() {
       description: assignment.description || '',
       dueDate: assignment.dueDate,
       priority: assignment.priority || 'medium',
+      estimatedStudyTime: assignment.estimatedStudyTime || 0,
+      attachmentLink: assignment.attachmentLink || '',
       reminder: assignment.reminder || '',
       progress: assignment.progress || 0,
       status: assignment.status,
@@ -481,6 +488,31 @@ export default function AssignmentsPage() {
                       <option key={p.value} value={p.value}>{p.label}</option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              {/* Study Time & Attachment */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-label-sm text-on-surface-variant">Estimated Study Time (minutes)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.estimatedStudyTime}
+                    onChange={(e) => setFormData({ ...formData, estimatedStudyTime: Number(e.target.value) })}
+                    className="mt-1 w-full rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="text-label-sm text-on-surface-variant">Attachment Link (optional)</label>
+                  <input
+                    type="url"
+                    value={formData.attachmentLink}
+                    onChange={(e) => setFormData({ ...formData, attachmentLink: e.target.value })}
+                    className="mt-1 w-full rounded-radius-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface outline-none focus:border-primary-container"
+                    placeholder="https://..."
+                  />
                 </div>
               </div>
 

@@ -35,6 +35,9 @@ export function useCreateAssignment() {
           description: assignment.description || '',
           due_date: assignment.dueDate,
           status: assignment.status,
+          priority: assignment.priority || 'medium',
+          estimated_study_time: assignment.estimatedStudyTime || 0,
+          attachment_link: assignment.attachmentLink || '',
           grade: assignment.grade || null,
         }])
         .select()
@@ -75,6 +78,9 @@ export function useUpdateAssignment() {
           subject_id: updates.subjectId,
           due_date: updates.dueDate,
           status: updates.status,
+          priority: updates.priority,
+          estimated_study_time: updates.estimatedStudyTime,
+          attachment_link: updates.attachmentLink,
           grade: updates.grade ?? null,
         })
         .eq('id', id)
