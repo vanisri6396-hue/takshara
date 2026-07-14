@@ -807,7 +807,8 @@ function RecentActivity({ activities }: { activities: any[] }) {
               <div className="min-w-0 flex-1">
                 <p className="text-body-sm text-on-surface">{activity.message}</p>
                 <p className="text-label-sm text-on-surface-variant">
-                  {formatDate(activity.created_at || activity.timestamp, { hour: '2-digit', minute: '2-digit' })}
+                  {formatDate(activity.created_at || activity.timestamp)}
+
                 </p>
               </div>
             </div>

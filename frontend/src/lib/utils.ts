@@ -9,29 +9,53 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs))
 }
 
+function isValidDate(value: unknown): value is Date {
+  return value instanceof Date && !Number.isNaN(value.getTime())
+}
+
+function toDate(value: string | Date | undefined | null): Date | null {
+  if (!value) return null
+  const d = typeof value === 'string' ? new Date(value) : value
+  return isValidDate(d) ? d : null
+}
+
 /**
  * Format a date string to a human-readable format.
+ *
+ * Requirement-safe: never throws, never uses toLocaleDateString/toLocaleTimeString.
  */
-export function formatDate(date: string | Date, options?: Intl.DateTimeFormatOptions): string {
-  const d = typeof date === 'string' ? new Date(date) : date
-  return d.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    ...options,
-  })
+export function formatDate(date: string | Date | undefined | null): string {
+  const d = toDate(date)
+  if (!d) return 'No due date'
+
+
+  const monthIndex = d.getMonth()
+  const day = d.getDate()
+  const year = d.getFullYear()
+
+  // Keep output stable and locale-independent.
+  const monthShort = [
+    'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',
+  ][monthIndex] ?? '—'
+
+  return `${monthShort} ${day}, ${year}`
 }
 
 /**
  * Format time from a date string.
+ * Requirement-safe: never throws, never uses toLocaleTimeString.
  */
-export function formatTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date
-  return d.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+export function formatTime(date: string | Date | undefined | null): string {
+  const d = toDate(date)
+  if (!d) return '—'
+
+  const hours = d.getHours()
+  const minutes = d.getMinutes()
+  const hh = String(hours).padStart(2, '0')
+  const mm = String(minutes).padStart(2, '0')
+  return `${hh}:${mm}`
 }
+
 
 /**
  * Calculate percentage safely.

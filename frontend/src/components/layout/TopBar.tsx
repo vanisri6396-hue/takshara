@@ -168,7 +168,8 @@ export function TopBar() {
                                 </p>
                               )}
                               <p className="mt-1 text-label-sm text-on-surface-variant/50">
-                                {formatDate(notification.createdAt, { hour: '2-digit', minute: '2-digit' })}
+                                {formatDate(notification.createdAt)}
+
                               </p>
                             </div>
                             {!notification.read && (

@@ -249,7 +249,13 @@ function ScheduleFormModal({
             <select
               id="classType"
               value={formData.classType}
-              onChange={(e) => setFormData({ ...formData, classType: e.target.value as any })}
+              onChange={(e) => {
+                const v = e.target.value
+                if (v === 'theory' || v === 'lab' || v === 'tutorial' || v === 'seminar') {
+                  setFormData({ ...formData, classType: v })
+                }
+              }}
+
               className="w-full rounded-radius-lg border-2 border-outline-variant/30 bg-surface-container-low px-4 py-3 text-body-sm text-on-surface transition-all duration-200 focus:border-primary-container focus:outline-none focus:ring-4 focus:ring-primary-container/10"
             >
               {CLASS_TYPES.map((type) => (
@@ -595,7 +601,8 @@ export default function TimetablePage() {
 
   const now = new Date()
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-  const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' })
+  const currentDay = DAYS[new Date().getDay() - 1] ?? DAYS[0]
+
 
   const daySchedule = useMemo(
     () =>
@@ -638,16 +645,19 @@ export default function TimetablePage() {
           await updateMutation.mutateAsync({ id: selectedSchedule.id, ...data })
           showToast('Class updated successfully', 'success')
         } else {
-          await createMutation.mutateAsync(data as Omit<Schedule, 'id'>)
+          const payload = data as Omit<Schedule, 'id'>
+          await createMutation.mutateAsync(payload)
           showToast('Class added successfully', 'success')
         }
         setIsModalOpen(false)
-      } catch (error: any) {
-        showToast(error.message || 'An error occurred. Please try again.', 'error')
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'An error occurred. Please try again.'
+        showToast(msg, 'error')
       }
     },
     [selectedSchedule, updateMutation, createMutation, showToast]
   )
+
 
   const handleConfirmDelete = useCallback(async () => {
     if (!selectedSchedule) return
@@ -656,10 +666,12 @@ export default function TimetablePage() {
       showToast('Class deleted successfully', 'success')
       setIsDeleteDialogOpen(false)
       setSelectedSchedule(null)
-    } catch (error: any) {
-      showToast(error.message || 'Failed to delete class. Please try again.', 'error')
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Failed to delete class. Please try again.'
+      showToast(msg, 'error')
     }
   }, [selectedSchedule, deleteMutation, showToast])
+
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -675,9 +687,18 @@ export default function TimetablePage() {
   const isSubmitting = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending
 
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown as any)
-    return () => window.removeEventListener('keydown', handleKeyDown as any)
-  }, [handleKeyDown])
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'n') return
+      if (e.metaKey || e.ctrlKey) {
+        e.preventDefault()
+        handleAdd()
+      }
+    }
+
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [handleAdd])
+
 
   if (isLoading) {
     return <LoadingSkeleton />
