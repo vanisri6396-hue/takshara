@@ -7,11 +7,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/Button'
 import { GlassCard } from '@/components/ui/GlassCard'
+import { Logo } from '@/components/ui/Logo'
 import { AuthInput } from '@/features/auth/components/AuthInput'
 import { PasswordStrength } from '@/features/auth/components/PasswordStrength'
 import { PasswordChecklist } from '@/features/auth/components/PasswordChecklist'
 import { useAuthStore } from '@/stores/authStore'
-import { APP_NAME } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
 const registerSchema = z.object({
@@ -99,14 +99,8 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-surface p-4">
       <div className="w-full max-w-md animate-fade-in-up">
         <GlassCard className="p-8">
-          <div className="mb-8 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-radius-xl bg-primary-container text-headline-lg font-bold text-on-primary-container">
-              T
-            </div>
-            <h1 className="mt-4 font-headline text-headline-lg text-on-surface">Create Account</h1>
-            <p className="mt-1 text-body-md text-on-surface-variant">
-              Join {APP_NAME} and transform your studies
-            </p>
+          <div className="mb-8 flex flex-col items-center gap-4">
+            <Logo size="xl" />
           </div>
 
           <form
@@ -185,7 +179,7 @@ export default function RegisterPage() {
 
           <p className="mt-6 text-center text-body-md text-on-surface-variant">
             Already have an account?{' '}
-            <Link to="/auth/login" className="text-primary-container font-medium transition-colors hover:text-primary">
+<Link to="/login" className="text-primary-container font-medium transition-colors hover:text-primary">
               Sign in
             </Link>
           </p>

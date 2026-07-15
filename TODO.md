@@ -1,12 +1,14 @@
-# Takshara Landing + Public Homepage – TODO
+# Takshara Landing Page Premium Redesign
 
-- [ ] Add `framer-motion` dependency to `frontend/package.json`
-- [ ] Create landing page route at `/` and authenticated app under `/app`
-- [ ] Update router redirects so old paths keep working (e.g. `/dashboard` → `/app/dashboard`)
-- [ ] Implement `frontend/src/features/landing/LandingPage.tsx` with premium Takshara UI
-- [ ] Implement landing section components (Hero, Features, Assistant, Dashboard preview, Benefits, Testimonials, Timeline, Pricing placeholder, FAQ, CTA, Footer)
-- [ ] Implement Framer Motion micro-interactions: reveals, animated stats, shimmering borders, hover effects, reduced-motion support
-- [ ] Ensure SEO structure: semantic headings, meta-ish sections, crawlable text
-- [ ] Validate TypeScript types (no TS errors)
-- [ ] Run `npm install`, `npm run build`, `npm run lint` in `frontend/`
+## Steps
+- [x] Read current landing implementation and related components/routes.
+- [x] Refactor `LandingPage.tsx` to remove/avoid any dotted/grid background and implement premium Aurora background.
+
+- [ ] Update all primary CTAs to navigate to `/register`.
+- [ ] Update all Sign In buttons to navigate to `/login`.
+- [ ] Implement smooth in-page scrolling for feature buttons/links.
+- [ ] Apply premium UI polish across all sections (animations, spacing, glass panels, gradient borders, hover effects).
+- [ ] Ensure accessibility + reduced-motion behavior.
+- [ ] Typecheck/build to confirm zero TypeScript errors.
+
 

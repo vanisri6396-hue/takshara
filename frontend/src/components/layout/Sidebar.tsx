@@ -10,7 +10,8 @@ import {
   ChevronLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { NAV_ITEMS, APP_NAME } from '@/lib/constants'
+import { Logo } from '@/components/ui/Logo'
+import { NAV_ITEMS } from '@/lib/constants'
 import { useUIStore } from '@/stores/uiStore'
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -41,18 +42,9 @@ export function Sidebar() {
         )}
       >
         {sidebarOpen ? (
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-radius bg-primary-container text-label-sm font-bold text-on-primary-container">
-              T
-            </div>
-            <span className="font-headline text-headline-md text-on-surface">
-              {APP_NAME}
-            </span>
-          </div>
+          <Logo size="sm" showText={false} />
         ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-radius bg-primary-container text-label-sm font-bold text-on-primary-container">
-            T
-          </div>
+          <Logo size="sm" showText={false} />
         )}
       </div>
 

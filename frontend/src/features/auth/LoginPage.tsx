@@ -7,9 +7,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/Button'
 import { GlassCard } from '@/components/ui/GlassCard'
+import { Logo } from '@/components/ui/Logo'
 import { AuthInput } from '@/features/auth/components/AuthInput'
 import { useAuthStore } from '@/stores/authStore'
-import { APP_NAME, APP_TAGLINE } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
 const loginSchema = z.object({
@@ -77,12 +77,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-surface p-4">
       <div className="w-full max-w-md animate-fade-in-up">
         <GlassCard className="p-8">
-          <div className="mb-8 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-radius-xl bg-primary-container text-headline-lg font-bold text-on-primary-container">
-              T
-            </div>
-            <h1 className="mt-4 font-headline text-headline-lg text-on-surface">{APP_NAME}</h1>
-            <p className="mt-1 text-body-md text-on-surface-variant">{APP_TAGLINE}</p>
+          <div className="mb-8 flex flex-col items-center gap-4">
+            <Logo size="xl" />
           </div>
 
           <form

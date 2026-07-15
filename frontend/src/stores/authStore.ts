@@ -36,6 +36,8 @@ function mapAuthError(error: AuthError | Error | unknown): string {
 
   // Generic status-based fallbacks (order kept last so specific messages win)
   if (status === 400) return 'Authentication failed. Please check your email and password and try again.'
+  if (status === 500)
+    return 'The authentication service is temporarily unavailable. Please try again in a few moments.'
 
   return raw || 'Something went wrong. Please try again.'
 }

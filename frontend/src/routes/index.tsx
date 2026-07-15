@@ -54,8 +54,7 @@ export const router = createBrowserRouter([
       { path: 'profile', element: <ProfilePage /> },
     ],
   },
-  // Auth routes (aliases to prevent accidental 404s)
-  // Keep canonical paths under /auth/*, but also support /login and /register.
+  // Auth routes (canonical paths under /auth/*)
   {
     path: '/auth',
     children: [
@@ -77,6 +76,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  // Direct /login and /register aliases
   {
     path: '/login',
     element: (
@@ -93,6 +93,16 @@ export const router = createBrowserRouter([
       </AuthGate>
     ),
   },
+  // Legacy redirect aliases — old /feature paths → /app/feature
+  { path: '/dashboard', element: <Navigate to="/app/dashboard" replace /> },
+  { path: '/timetable', element: <Navigate to="/app/timetable" replace /> },
+  { path: '/notes', element: <Navigate to="/app/notes" replace /> },
+  { path: '/assignments', element: <Navigate to="/app/assignments" replace /> },
+  { path: '/attendance', element: <Navigate to="/app/attendance" replace /> },
+  { path: '/ai', element: <Navigate to="/app/ai" replace /> },
+  { path: '/profile', element: <Navigate to="/app/profile" replace /> },
+  { path: '/settings', element: <Navigate to="/app/settings" replace /> },
+  // Catch-all 404
   {
     path: '*',
     element: <NotFoundPage />,

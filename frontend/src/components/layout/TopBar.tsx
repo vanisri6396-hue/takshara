@@ -6,6 +6,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import { useAuthStore } from '@/stores/authStore'
 import { useNotifications, useUnreadCount, useMarkNotificationRead, useMarkAllRead } from '@/hooks/useNotifications'
 import { cn, formatDate } from '@/lib/utils'
+import { ROUTES } from '@/lib/constants'
 import { LogoutButton } from './LogoutButton'
 
 const notificationIcons: Record<string, React.ReactNode> = {
@@ -212,7 +213,7 @@ export function TopBar() {
                 <div className="p-1">
                   <button
                     onClick={() => {
-                      navigate('/profile')
+                      navigate(ROUTES.PROFILE)
                       setShowProfile(false)
                     }}
                     className="flex w-full items-center gap-2 rounded-radius-lg px-3 py-2 text-body-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-200"
@@ -221,7 +222,7 @@ export function TopBar() {
                   </button>
                   <button
                     onClick={() => {
-                      navigate('/settings')
+                      navigate(ROUTES.SETTINGS)
                       setShowProfile(false)
                     }}
                     className="flex w-full items-center gap-2 rounded-radius-lg px-3 py-2 text-body-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-200"
