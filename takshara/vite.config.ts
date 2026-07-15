@@ -24,6 +24,28 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom', 'framer-motion'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-router') || id.includes('react-dom') || id.includes('/react/')) {
+              return 'react-vendor'
+            }
+            if (id.includes('@supabase')) {
+              return 'supabase-vendor'
+            }
+            if (id.includes('framer-motion') || id.includes('motion-')) {
+              return 'motion-vendor'
+            }
+            if (id.includes('@tanstack')) {
+              return 'query-vendor'
+            }
+          }
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/functions/v1': {

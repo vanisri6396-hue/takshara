@@ -18,7 +18,7 @@ import {
   MessageSquare,
   BookOpen,
   GraduationCap,
-  Infinity,
+  Infinity as InfinityIcon,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button/Button'
@@ -1194,7 +1194,7 @@ export default function LandingPage() {
                     className="inline-flex items-center gap-2 rounded-full border border-primary-fixed/20 bg-[rgba(230,195,122,0.07)] px-4 py-2 text-xs text-on-surface-variant mb-4"
                     whileHover={reduced ? undefined : { scale: 1.02 }}
                   >
-                    <Infinity className="h-3.5 w-3.5 text-primary-fixed" aria-hidden="true" />
+                    <InfinityIcon className="h-3.5 w-3.5 text-primary-fixed" aria-hidden="true" />
                     Pricing
                   </motion.div>
                   <h2 className="text-3xl sm:text-4xl">Pricing</h2>
