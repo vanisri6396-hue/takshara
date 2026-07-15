@@ -24,3 +24,5 @@ dist/
 *.sw?
 
 .env
+
+supabase/.temp/
