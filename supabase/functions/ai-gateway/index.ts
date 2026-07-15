@@ -1,11 +1,9 @@
-import type { ChatMessage } from '../_shared/types'
-import { createXaiProvider } from '../_shared/xaiProvider'
+import type { ChatMessage } from '../_shared/types.ts'
+import { getProviderFromEnv } from '../_shared/providerSelector.ts'
 
-// NOTE: AI gateway for xAI (Grok) that:
-// - authenticates user via Supabase JWT passed in Authorization header
-// - validates request payload
-// - calls xAI using server-side API key (never exposed to client)
-// - supports future streaming (currently returns non-stream only, but structure supports stream later)
+// NOTE: DEPRECATED — This endpoint is superseded by `ai-chat`.
+// It is kept for backward compatibility only.
+
 
 declare const Deno: { env: { get: (key: string) => string | undefined } } | undefined
 
@@ -127,7 +125,8 @@ export default async function handler(req: Request): Promise<Response> {
   const messages = body.messages
 
   try {
-    const provider = createXaiProvider()
+    const provider = await getProviderFromEnv()
+
 
     // Build prompt shape: provider abstraction accepts ProviderChatInput.
     // In future we can inject Takshara system prompts + chat history.

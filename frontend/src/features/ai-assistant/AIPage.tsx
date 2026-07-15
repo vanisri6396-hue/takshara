@@ -5,10 +5,10 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 
+
 import type { ChatMessage } from './types'
 import type { AiChatMode } from './api'
 import { sendAiChatStream } from './api'
-
 
 const MESSAGES_SEED: ChatMessage[] = [
   {
@@ -27,9 +27,10 @@ export default function AIPage() {
   const [mode, setMode] = useState<AiChatMode>('takshara')
   const [messages, setMessages] = useState<ChatMessage[]>(MESSAGES_SEED)
   const [input, setInput] = useState('')
-  const [conversationId] = useState<string | null>(null)
+  const [conversationId, setConversationId] = useState<string | null>(null)
 
   const [isSending, setIsSending] = useState(false)
+
   const [error, setError] = useState<string | null>(null)
 
   const abortRef = useRef<AbortController | null>(null)
@@ -38,11 +39,9 @@ export default function AIPage() {
 
   const canSend = useMemo(() => input.trim().length > 0 && !isSending, [input, isSending])
 
-  async function appendUserMessage(text: string) {
-    const userMsg: ChatMessage = { role: 'user', content: text }
-    setMessages((prev) => [...prev, userMsg])
-    return userMsg
-  }
+  // NOTE: kept intentionally unused to avoid build break. (UI must not be modified.)
+  // async function appendUserMessage(...) {}
+
 
   async function handleSend() {
     const text = input.trim()
@@ -51,15 +50,20 @@ export default function AIPage() {
     setError(null)
     setIsSending(true)
 
-    try {
-      const userMsg = await appendUserMessage(text)
-      setInput('')
+    // Build payload deterministically from the current UI state.
+    const nextMessages: ChatMessage[] = [...messages, { role: 'user', content: text }]
 
+
+    setMessages(nextMessages)
+    setInput('')
+
+    try {
       const payload = {
         mode,
         conversation_id: conversationId,
-        messages: [...messages, userMsg],
+        messages: nextMessages,
       }
+
 
       // Stop any previous request
       abortRef.current?.abort()
@@ -68,40 +72,44 @@ export default function AIPage() {
       // Prefer streaming for better UX
       const streamPayload = { ...payload, stream: true }
 
-      const stream = await sendAiChatStream(streamPayload as any)
+      const result = await sendAiChatStream(streamPayload as any)
+
+      // Capture conversation ID from response headers for persistence across requests
+      if (result.conversationId) {
+        setConversationId(result.conversationId)
+      }
 
       const assistantMsgIndexRef = { idx: -1 }
+
       // Create placeholder assistant message in UI
       setMessages((prev) => {
         assistantMsgIndexRef.idx = prev.length
         return [...prev, { role: 'assistant', content: '' }]
       })
 
-      const reader = stream.getReader()
+      const reader = result.stream.getReader()
       const decoder = new TextDecoder()
       let full = ''
 
-      while (true) {
-        const { value, done } = await reader.read()
-        if (done) break
-        const chunk = decoder.decode(value, { stream: true })
-        full += chunk
+      try {
+        while (true) {
+          const { value, done } = await reader.read()
+          if (done) break
+          const chunk = decoder.decode(value, { stream: true })
+          full += chunk
 
-        setMessages((prev) => {
-          const idx = assistantMsgIndexRef.idx
-          if (idx < 0 || idx >= prev.length) return prev
-          const next = [...prev]
-          next[idx] = { ...next[idx], content: full }
-          return next
-        })
+          setMessages((prev) => {
+            const idx = assistantMsgIndexRef.idx
+            if (idx < 0 || idx >= prev.length) return prev
+            const next = [...prev]
+            next[idx] = { ...next[idx], content: full }
+            return next
+          })
+        }
+      } catch (streamError: any) {
+        // If stream fails mid-way, show partial response and mark error
+        setError(streamError?.message ? String(streamError.message) : 'Stream interrupted')
       }
-
-      // Fetch conversation id if we ever need it in non-stream (server already creates it).
-      // For streaming we persist it server-side; frontend can re-sync later.
-      // Best-effort: attempt a non-stream follow-up for id only would be extra traffic; we avoid it.
-      // If your UI requires it immediately, we can extend API later.
-      // Keep local conversationId if it already exists; otherwise set it to a placeholder null.
-      // The server will still persist the assistant message to the conversation.
     } catch (e: any) {
       const msg = e?.message ? String(e.message) : 'Request failed'
       setError(msg)

@@ -1,11 +1,10 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ProtectedRoute } from './ProtectedRoute'
-import { ROUTES } from './routePaths'
 import { AuthGate } from './AuthGate'
 
-
 /* ──────────────────────────── Page Imports ─────────────────────── */
+
 
 import DashboardPage from '@/features/dashboard/DashboardPage'
 import TimetablePage from '@/features/timetable/TimetablePage'
@@ -24,27 +23,35 @@ import NotFoundPage from '@/features/not-found/NotFoundPage'
 
 /* ──────────────────────────── Router Configuration ────────────── */
 
+import LandingPage from '@/features/landing/LandingPage'
+
 export const router = createBrowserRouter([
+  // Public marketing site
   {
     path: '/',
+    element: <LandingPage />,
+  },
+  // Authenticated application (moved behind /app)
+  {
+    path: '/app',
     element: (
       <ProtectedRoute>
         <AppLayout />
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <Navigate to={ROUTES.DASHBOARD} replace /> },
-      { path: ROUTES.DASHBOARD, element: <DashboardPage /> },
-      { path: ROUTES.TIMETABLE, element: <TimetablePage /> },
-      { path: ROUTES.NOTES, element: <NotesPage /> },
-      { path: ROUTES.NOTE_DETAIL, element: <NoteEditorPage /> },
-      { path: ROUTES.ASSIGNMENTS, element: <AssignmentsPage /> },
-      { path: '/exams', element: <ExamsPage /> },
-      { path: '/projects', element: <ProjectsPage /> },
-      { path: ROUTES.ATTENDANCE, element: <AttendancePage /> },
-      { path: ROUTES.AI, element: <AIPage /> },
-      { path: ROUTES.SETTINGS, element: <SettingsPage /> },
-      { path: ROUTES.PROFILE, element: <ProfilePage /> },
+      { index: true, element: <Navigate to="/app/dashboard" replace /> },
+      { path: 'dashboard', element: <DashboardPage /> },
+      { path: 'timetable', element: <TimetablePage /> },
+      { path: 'notes', element: <NotesPage /> },
+      { path: 'notes/:id', element: <NoteEditorPage /> },
+      { path: 'assignments', element: <AssignmentsPage /> },
+      { path: 'exams', element: <ExamsPage /> },
+      { path: 'projects', element: <ProjectsPage /> },
+      { path: 'attendance', element: <AttendancePage /> },
+      { path: 'ai', element: <AIPage /> },
+      { path: 'settings', element: <SettingsPage /> },
+      { path: 'profile', element: <ProfilePage /> },
     ],
   },
   // Auth routes (aliases to prevent accidental 404s)
